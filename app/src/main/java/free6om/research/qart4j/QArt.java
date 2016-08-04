@@ -9,15 +9,21 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+//import javax.imageio.ImageIO;
+//import java.awt.*;
+//import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
+//import java.nio.file.Paths;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
+
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 
 /**
  * Hello world!
@@ -172,12 +178,12 @@ public class QArt {
         String outputFormat = (String) options.valueOf("f");
         String output = (String) options.valueOf("o");
 
-        configLog(log4j);
+//        configLog(log4j);
 
         //todo validate input params, make sure all of them are valid
 
         try {
-            BufferedImage input = ImageUtil.loadImage(filename, width, height);
+            Bitmap input = ImageUtil.loadImage(filename, width, height);
 
             int qrSizeWithoutQuiet = 17 + 4*version;
             int qrSize = qrSizeWithoutQuiet + quietZone * 2;
@@ -205,19 +211,19 @@ public class QArt {
 
             int[][] target = null;
             int dx = 0, dy = 0;
-            BufferedImage targetImage = null;
+            Bitmap targetImage = null;
             Rectangle targetRect = inputImageRect.intersect(qrWithoutQuietRect);
             if(targetRect == null) {
                 LOGGER.warn("no intersect zone");
                 target = new int[0][0];
             } else {
-                targetImage = input.getSubimage(targetRect.start.x, targetRect.start.y, targetRect.width, targetRect.height);
+                targetImage = Bitmap.createBitmap(input, targetRect.start.x, targetRect.start.y, targetRect.width, targetRect.height);
                 int scaledWidth = targetRect.width/scale;
                 int scaledHeight = targetRect.height/scale;
-                BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
-                Graphics graphics = scaledImage.createGraphics();
-                graphics.drawImage(targetImage, 0, 0, scaledWidth, scaledHeight, null);
-                graphics.dispose();
+                Bitmap scaledImage = Bitmap.createScaledBitmap(targetImage, scaledWidth, scaledHeight, false);
+//                Graphics graphics = scaledImage.createGraphics();
+//                graphics.drawImage(targetImage, 0, 0, scaledWidth, scaledHeight, null);
+//                graphics.dispose();
 
                 target = ImageUtil.makeTarget(scaledImage, 0, 0, scaledWidth, scaledHeight);
                 dx = (qrWithoutQuietRect.start.x - targetRect.start.x)/scale;
@@ -231,20 +237,42 @@ public class QArt {
             BitMatrix bitMatrix = ImageUtil.makeBitMatrix(qrCode, quietZone, size);
 
             MatrixToImageConfig config = new MatrixToImageConfig(colorBlack, colorWhite);
-            BufferedImage finalQrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, config);
+            Bitmap finalQrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, config);
 
             Rectangle finalRect = qrRect.union(inputImageRect);
-            BufferedImage finalImage = new BufferedImage(finalRect.width, finalRect.height, BufferedImage.TYPE_INT_ARGB);
-            Graphics graphics = finalImage.createGraphics();
-            graphics.drawImage(input,
-                    inputImageRect.start.x - finalRect.start.x, inputImageRect.start.y - finalRect.start.y,
-                    inputImageRect.width, inputImageRect.height, null);
-            graphics.drawImage(finalQrImage,
-                    qrRect.start.x - finalRect.start.x, qrRect.start.y - finalRect.start.y,
-                    qrRect.width, qrRect.height, null);
-            graphics.dispose();
+            Bitmap finalImage = Bitmap.createBitmap(finalRect.width, finalRect.height, Bitmap.Config.ARGB_8888);
+//            Graphics graphics = finalImage.createGraphics();
+//            graphics.drawImage(input,
+//                    inputImageRect.start.x - finalRect.start.x, inputImageRect.start.y - finalRect.start.y,
+//                    inputImageRect.width, inputImageRect.height, null);
+//            graphics.drawImage(finalQrImage,
+//                    qrRect.start.x - finalRect.start.x, qrRect.start.y - finalRect.start.y,
+//                    qrRect.width, qrRect.height, null);
+//            graphics.dispose();
+            Canvas canvas = new Canvas(finalImage);
+            canvas.drawBitmap(input, inputImageRect.start.x - finalRect.start.x, inputImageRect.start.y - finalRect.start.y, null);
+            canvas.drawBitmap(finalQrImage, qrRect.start.x - finalRect.start.x, qrRect.start.y - finalRect.start.y, null);
 
-            ImageIO.write(finalImage, outputFormat, new File(output));
+//            ImageIO.write(finalImage, outputFormat, new File(output));
+            OutputStream outputStream = null;
+            try {
+                outputStream = new FileOutputStream(new File(output));
+                if (finalImage != null) {
+                    finalImage.compress(Bitmap.CompressFormat.PNG, 0, outputStream);
+                }
+            } catch (FileNotFoundException ex) {
+                LOGGER.error("file not found", ex);
+            } catch (IOException ex) {
+                LOGGER.error("IOException", ex);
+            } finally {
+                try {
+                    if (outputStream != null) {
+                        outputStream.close();
+                    }
+                }catch (IOException e) {
+                    LOGGER.error("close file fail", e);
+                }
+            }
         } catch (Exception e) {
             LOGGER.error("encode error", e);
         }

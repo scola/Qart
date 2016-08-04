@@ -2,12 +2,15 @@ package io.github.scola.qart;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import free6om.research.qart4j.QArt;
+
 
 public class MainActivity extends ActionBarActivity {
-
+    private final static String TAG = "MainActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +33,20 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Log.d(TAG, "Qart begin");
+            QArt.main(new String[]{
+                    "-i", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/panda.jpg",
+                    "-o", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/sample-output.png",
+                    "-u", "http://www.imdb.com/title/tt2267968/",
+                    "-w", "660",
+                    "-h", "978",
+                    "--mr", "147",
+                    "--mb", "334",
+                    "-z", "342",
+                    "-v", "16",
+                    "-q", "1",
+                    "--cw", "EFFFFFFF"});
+            Log.d(TAG, "Qart end");
             return true;
         }
 

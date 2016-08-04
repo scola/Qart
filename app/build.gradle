@@ -26,7 +26,7 @@ dependencies {
     compile 'net.sf.jopt-simple:jopt-simple:5.0.2'
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'org.slf4j:slf4j-log4j13:1.0.1'
+//    compile 'org.slf4j:slf4j-log4j13:1.0.1'
     compile 'com.google.zxing:core:3.2.1'
     compile files('libs/commons-imaging-1.0-SNAPSHOT.jar')
 }

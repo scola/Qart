@@ -4,21 +4,24 @@ import com.google.zxing.common.BitMatrix;
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+//import javax.imageio.ImageIO;
+//import java.awt.*;
+//import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 /**
  * Created by free6om on 7/27/15.
  */
 public class ImageUtil {
-    public static int[][] makeTarget(BufferedImage image, int x, int y, int width, int height) {
+    public static int[][] makeTarget(Bitmap image, int x, int y, int width, int height) {
         int[][] target = new int[height][width];
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
-                int argb = image.getRGB(j+x, i+y);
+                int argb = image.getPixel(j + x, i + y);
                 int a = (argb >> 24) & 0xFF;
                 int r = (argb >> 16) & 0xFF;
                 int g = (argb >> 8) & 0xFF;
@@ -36,15 +39,15 @@ public class ImageUtil {
 
     }
 
-    public static BufferedImage loadImage(String filename, int width, int height) throws IOException, ImageReadException {
-        BufferedImage image = Imaging.getBufferedImage(new File(filename));
-
-        BufferedImage finalImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics graphics = finalImage.createGraphics();
-        graphics.drawImage(image, 0, 0, width, height, null);
-        graphics.dispose();
-
-        return finalImage;
+    public static Bitmap loadImage(String filename, int width, int height) throws IOException, ImageReadException {
+//        BufferedImage image = Imaging.getBufferedImage(new File(filename));
+        return BitmapFactory.decodeFile(filename);
+//        Bitmap finalImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+//        Graphics graphics = finalImage.createGraphics();
+//        graphics.drawImage(image, 0, 0, width, height, null);
+//        graphics.dispose();
+//
+//        return finalImage;
     }
 
     public static BitMatrix makeBitMatrix(QRCode code, int quietZone, int size) {

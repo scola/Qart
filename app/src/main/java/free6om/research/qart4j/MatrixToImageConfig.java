@@ -16,8 +16,8 @@
 
 package free6om.research.qart4j;
 
-import java.awt.image.BufferedImage;
-
+//import java.awt.image.BufferedImage;
+import android.graphics.Bitmap;
 /**
  * Encapsulates custom configuration used in methods of {@link MatrixToImageWriter}.
  */
@@ -54,17 +54,20 @@ public final class MatrixToImageConfig {
     return offColor;
   }
 
-  int getBufferedImageColorModel() {
+    Bitmap.Config getBufferedImageColorModel() {
     if (onColor == BLACK && offColor == WHITE) {
       // Use faster BINARY if colors match default
-      return BufferedImage.TYPE_BYTE_BINARY;
+//      return BufferedImage.TYPE_BYTE_BINARY;
+        return Bitmap.Config.ALPHA_8;
     }
     if (hasTransparency(onColor) || hasTransparency(offColor)) {
       // Use ARGB representation if colors specify non-opaque alpha
-      return BufferedImage.TYPE_INT_ARGB;
+//      return BufferedImage.TYPE_INT_ARGB;
+        return Bitmap.Config.ARGB_8888;
     }
     // Default otherwise to RGB representation with ignored alpha channel
-    return BufferedImage.TYPE_INT_RGB;
+//    return BufferedImage.TYPE_INT_RGB;
+        return Bitmap.Config.RGB_565;
   }
 
   private static boolean hasTransparency(int argb) {

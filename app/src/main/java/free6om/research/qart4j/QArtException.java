@@ -19,7 +19,7 @@ public class QArtException extends Exception {
         super(cause);
     }
 
-    public QArtException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+//    public QArtException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+//        super(message, cause, enableSuppression, writableStackTrace);
+//    }
 }
