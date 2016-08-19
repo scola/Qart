@@ -24,11 +24,13 @@ import java.util.Random;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.util.Log;
 
 /**
  * Hello world!
  */
 public class QArt {
+    private static final String TAG = "QArt";
     private static final Logger LOGGER = LoggerFactory.getLogger("test");
 
     public static void main(String[] args) {
@@ -224,21 +226,25 @@ public class QArt {
 //                Graphics graphics = scaledImage.createGraphics();
 //                graphics.drawImage(targetImage, 0, 0, scaledWidth, scaledHeight, null);
 //                graphics.dispose();
-
+                Log.d(TAG, "before ImageUtil.makeTarget");
                 target = ImageUtil.makeTarget(scaledImage, 0, 0, scaledWidth, scaledHeight);
                 dx = (qrWithoutQuietRect.start.x - targetRect.start.x)/scale;
                 dy = (qrWithoutQuietRect.start.y - targetRect.start.y)/scale;
             }
 
-
+            Log.d(TAG, "before new Image");
             Image image = new Image(target, dx, dy, url, version, mask, rotation, randControl, seed, dither, onlyDataBits, saveControl);
 
+            Log.d(TAG, "before image.encode()");
             QRCode qrCode = image.encode();
+            Log.d(TAG, "before ImageUtil.makeBitMatrix");
             BitMatrix bitMatrix = ImageUtil.makeBitMatrix(qrCode, quietZone, size);
 
+            Log.d(TAG, "before MatrixToImageWriter.toBufferedImage");
             MatrixToImageConfig config = new MatrixToImageConfig(colorBlack, colorWhite);
             Bitmap finalQrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, config);
 
+            Log.d(TAG, "MatrixToImageWriter.toBufferedImage end");
             Rectangle finalRect = qrRect.union(inputImageRect);
             Bitmap finalImage = Bitmap.createBitmap(finalRect.width, finalRect.height, Bitmap.Config.ARGB_8888);
 //            Graphics graphics = finalImage.createGraphics();
@@ -249,6 +255,7 @@ public class QArt {
 //                    qrRect.start.x - finalRect.start.x, qrRect.start.y - finalRect.start.y,
 //                    qrRect.width, qrRect.height, null);
 //            graphics.dispose();
+            Log.d(TAG, "before finalImage merge");
             Canvas canvas = new Canvas(finalImage);
             canvas.drawBitmap(input, inputImageRect.start.x - finalRect.start.x, inputImageRect.start.y - finalRect.start.y, null);
             canvas.drawBitmap(finalQrImage, qrRect.start.x - finalRect.start.x, qrRect.start.y - finalRect.start.y, null);
@@ -276,7 +283,7 @@ public class QArt {
         } catch (Exception e) {
             LOGGER.error("encode error", e);
         }
-
+        Log.d(TAG, "finalImage saved");
     }
 
     private static void configLog(String configFile) {

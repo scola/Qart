@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import free6om.research.qart4j.QArt;
+import io.github.scola.cuteqr.CuteR;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -34,18 +35,22 @@ public class MainActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Log.d(TAG, "Qart begin");
-            QArt.main(new String[]{
-                    "-i", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/panda.jpg",
-                    "-o", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/sample-output.png",
-                    "-u", "http://www.imdb.com/title/tt2267968/",
-                    "-w", "660",
-                    "-h", "978",
-                    "--mr", "147",
-                    "--mb", "334",
-                    "-z", "342",
-                    "-v", "16",
-                    "-q", "1",
-                    "--cw", "EFFFFFFF"});
+//            QArt.main(new String[]{
+//                    "-i", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/panda.jpg",
+//                    "-o", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/sample-output.png",
+//                    "-u", "http://www.imdb.com/title/tt2267968/",
+//                    "-w", "660",
+//                    "-h", "978",
+//                    "--mr", "147",
+//                    "--mb", "334",
+//                    "-z", "342",
+//                    "-v", "16",
+//                    "-q", "1",
+//                    "--cw", "EFFFFFFF"});
+
+            CuteR.Product("http://www.chinuno.com",
+                    android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/wushaozheng_no_align-output.png",
+                    android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/wushaozheng.jpeg");
             Log.d(TAG, "Qart end");
             return true;
         }

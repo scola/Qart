@@ -1,5 +1,7 @@
 package free6om.research.qart4j;
 
+import android.util.Log;
+
 import com.google.zxing.common.reedsolomon.GenericGF;
 import com.google.zxing.common.reedsolomon.ReedSolomonEncoder;
 import org.apache.commons.imaging.ImageReadException;
@@ -15,6 +17,7 @@ import java.util.Random;
  * Created by free6om on 7/21/15.
  */
 public class Image {
+    private static final String TAG = "Image";
     private static final Logger LOGGER = LoggerFactory.getLogger(Image.class);
 
     private int[][] target;
@@ -237,6 +240,7 @@ public class Image {
         byte[] numbers = new byte[dataBitsRemaining/10*3];
 
         do {
+            Log.d(TAG, "encode start in the loop");
             int nd = numberOfDataBytesPerBlock;
             bits.reset();
             Arrays.fill(numbers, (byte) '0');
@@ -400,7 +404,7 @@ public class Image {
                 checkOffset += numberOfCheckBytesPerBlock * 8;
             }
 
-
+            Log.d(TAG, "before dither loop2");
             // Pass over all pixels again, dithering.
             if (this.dither) {
                 for(int i = 0;i < pixelByOffset.length;i++) {
@@ -468,6 +472,8 @@ public class Image {
 
             }
 
+            Log.d(TAG, "before errorCount");
+
             errorCount = 0;
             // Copy numbers back out.
             for (int i = 0; i < dataBitsRemaining/10; i++) {
@@ -485,6 +491,7 @@ public class Image {
                     // Pick one at random to clear.  This will break some
                     // checksum bits, but so be it.
                     LOGGER.debug("oops, i: {}, v: {}", i, v);
+                    Log.d(TAG, String.format("oops, i: {%d}, v: {%d}", i, v));
                     PixelInfo info = pixelByOffset[headSize + 10*i + 3];
                     info.setContrast(Integer.MAX_VALUE >> 8);
                     info.setHardZero(true);
