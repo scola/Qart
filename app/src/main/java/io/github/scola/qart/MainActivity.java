@@ -48,7 +48,7 @@ public class MainActivity extends ActionBarActivity {
 //                    "-q", "1",
 //                    "--cw", "EFFFFFFF"});
 
-            CuteR.Product("http://www.chinuno.com",
+            CuteR.Product("http://www.chinuno.com#adffffffffffddddddddddddddddddddfdfdfdfasdfasfasfafasfafasfaasdfadfadfafadfadffffffffffddddddddddddddddddddfdfdfdfasdfasfasfafasfafasfaasdfadfadfafadfadffffffffffddddddddddddddddddddfdfdfdfasdfasfasfafasfafasfaasdfadfadfafadfadf",
                     android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/wushaozheng_no_align-output.png",
                     android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/wushaozheng.jpeg");
             Log.d(TAG, "Qart end");

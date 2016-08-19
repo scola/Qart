@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
+import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.util.Log;
 
@@ -27,7 +28,6 @@ import java.io.OutputStream;
 import java.util.EnumMap;
 import java.util.Map;
 
-import free6om.research.qart4j.ImageUtil;
 
 /**
  * Created by shaozheng on 2016/8/12.
@@ -38,7 +38,7 @@ public class CuteR {
     private static final int WHITE = 0xFFFFFFFF;
     private static final int BLACK = 0xFF000000;
 
-    private static int[] alignentPatternCenters;
+    private static int[] patternCenters;
     public static Bitmap Product(String txt, String output, String filename/*, Bitmap img, int version, ErrorCorrectionLevel errLevel*/){
         Bitmap QRImage = null;
         try {
@@ -66,8 +66,34 @@ public class CuteR {
             resizedImage = Bitmap.createScaledBitmap(input, (int)((scaledQRImage.getWidth() - scale  * 4 * 2) * (1.0 * input.getWidth() / input.getHeight())), scaledQRImage.getHeight() - scale  * 4 * 2, false);
             imageSize = resizedImage.getHeight();
         }
-        resizedImage = ConvertToBlackAndWhite(resizedImage);
-        resizedImage = convertGreyImgByFloyd2(resizedImage);
+        if (patternCenters == null || patternCenters.length == 0) {
+            Log.e(TAG, "patternCenters == null || patternCenters.length == 0");
+            return null;
+        }
+
+        int[][] pattern = new int[scaledQRImage.getWidth() - scale  * 4 * 2][scaledQRImage.getWidth() - scale  * 4 * 2];
+
+        for (int i = 0; i < patternCenters.length; i++) {
+            for (int j = 0; j < patternCenters.length; j++) {
+                if (patternCenters[i] == 6 && patternCenters[j] == patternCenters[patternCenters.length - 1] ||
+                        (patternCenters[j] == 6 && patternCenters[i] == patternCenters[patternCenters.length - 1]) ||
+                        (patternCenters[i] == 6 && patternCenters[j] == 6)) {
+                    continue;
+                } else {
+                    int initx = scale * (patternCenters[i] - 2);
+                    int inity = scale * (patternCenters[j] - 2);
+                    for (int x = initx; x < initx + scale * 5; x++) {
+                        for (int y = inity; y < inity + scale * 5; y++) {
+                            pattern[x][y] = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        Bitmap blackWhite = createContrast(resizedImage, 50, 30);
+        blackWhite = ConvertToBlackAndWhite(blackWhite);
+        blackWhite = convertGreyImgByFloyd2(blackWhite);
         for (int i = 0; i < imageSize; i++) {
             for (int j = 0; j < imageSize; j++) {
                 if ((i * 3 / scale) % 3 == 1 && (j * 3 / scale) % 3 == 1) {
@@ -79,26 +105,16 @@ public class CuteR {
                 if (i > imageSize - (scale  * 4 * 2 + 1) && j < scale  * 4 * 2) {
                     continue;
                 }
-                if (resizedImage.getPixel(i, j) == 0) {
+
+                if (pattern[i][j] == 1) {
                     continue;
                 }
-                scaledQRImage.setPixel(i + scale  * 4, j + scale  * 4, resizedImage.getPixel(i, j));
-            }
-        }
-//        if (alignentPatternCenters == null || alignentPatternCenters.length == 0) {
-//            Log.e(TAG, "alignentPatternCenters == null || alignentPatternCenters.length == 0");
-//            return null;
-//        }
-//
-//        for (int i = 0; i < alignentPatternCenters.length; i++) {
-//            for (int j = 0; j < alignentPatternCenters.length; j++) {
-//                if (i == 6 && j == alignentPatternCenters[alignentPatternCenters.length - 1] ||
-//                        (j == 6 && i == alignentPatternCenters[alignentPatternCenters.length - 1]) ||
-//                        (i == 6 && j == 6)) {
+//                if (Color.alpha(resizedImage.getPixel(i, j)) == 0) {
 //                    continue;
 //                }
-//            }
-//        }
+                scaledQRImage.setPixel(i + scale  * 4, j + scale  * 4, blackWhite.getPixel(i, j));
+            }
+        }
 
         OutputStream outputStream = null;
         try {
@@ -139,7 +155,7 @@ public class CuteR {
         QRCode qrCode;
         try {
             qrCode = Encoder.encode(contentsToEncode, ErrorCorrectionLevel.H, hints);
-            alignentPatternCenters = qrCode.getVersion().getAlignmentPatternCenters();
+            patternCenters = qrCode.getVersion().getAlignmentPatternCenters();
 //            result = new MultiFormatWriter().encode(contentsToEncode, BarcodeFormat.QR_CODE, dimension, dimension, hints);
             result = renderResult(qrCode, 4);
         } catch (IllegalArgumentException iae) {
@@ -249,7 +265,7 @@ public class CuteR {
         return rBitmap;
     }
 
-    public static Bitmap createContrast(Bitmap src, double value) {
+    public static Bitmap createContrast(Bitmap src, double value, int brightness) {
         // image size
         int width = src.getWidth();
         int height = src.getHeight();
@@ -269,17 +285,17 @@ public class CuteR {
                 A = Color.alpha(pixel);
                 // apply filter contrast for every channel R, G, B
                 R = Color.red(pixel);
-                R = (int)(((((R / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
+                R = (int)(((((R / 255.0) - 0.5) * contrast) + 0.5) * 255.0) + brightness;
                 if(R < 0) { R = 0; }
                 else if(R > 255) { R = 255; }
 
-                G = Color.red(pixel);
-                G = (int)(((((G / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
+                G = Color.green(pixel);
+                G = (int)(((((G / 255.0) - 0.5) * contrast) + 0.5) * 255.0) + brightness;
                 if(G < 0) { G = 0; }
                 else if(G > 255) { G = 255; }
 
-                B = Color.red(pixel);
-                B = (int)(((((B / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
+                B = Color.blue(pixel);
+                B = (int)(((((B / 255.0) - 0.5) * contrast) + 0.5) * 255.0) + brightness;
                 if(B < 0) { B = 0; }
                 else if(B > 255) { B = 255; }
 
