@@ -1,8 +1,25 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
+        <item name="actionOverflowMenuStyle">@style/OverflowMenu</item>
     </style>
+
+    <!--<style name="MyActionBar" parent="Widget.AppCompat.Light.ActionBar">-->
+
+        <!--<item name="android:displayOptions" tools:targetApi="11">useLogo|showHome</item>-->
+        <!--<item name="displayOptions">useLogo|showHome</item>-->
+    <!--</style>-->
+    <style name="OverflowMenu" parent="Widget.AppCompat.PopupMenu.Overflow">
+        <!-- Required for pre-Lollipop. -->
+        <item name="overlapAnchor">false</item>
+
+        <!-- Required for Lollipop. -->
+        <item name="android:overlapAnchor" tools:targetApi="21">false</item>
+    </style>
+
+    <!--<item name="android:background">@color/background_color</item>-->
+    <!--<item name="background">@color/background_color</item>-->
 
 </resources>

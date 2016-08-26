@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "io.github.scola.qart"
         minSdkVersion 14
-        targetSdkVersion 22
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -20,13 +20,15 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.1.1'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'junit:junit:4.12'
     compile 'net.sf.jopt-simple:jopt-simple:5.0.2'
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-api:1.7.21'
-//    compile 'org.slf4j:slf4j-log4j13:1.0.1'
+    //    compile 'org.slf4j:slf4j-log4j13:1.0.1'
     compile 'com.google.zxing:core:3.2.1'
     compile files('libs/commons-imaging-1.0-SNAPSHOT.jar')
+    //    compile 'com.github.dss886:Android-EmotionInputDetector:v0.2.0'
+    compile project(':library')
 }

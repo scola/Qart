@@ -1,6 +1,61 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
+
+    <item android:id="@+id/launch_gallery"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="@string/gallery"
+        app:showAsAction="ifRoom|withText"
+    />
+
+    <item android:id="@+id/convert_qr"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/convert"
+        app:showAsAction="ifRoom|withText"
+    />
+
+    <item android:id="@+id/share_qr"
+        android:icon="@android:drawable/ic_menu_share"
+        android:title="@string/share"
+        app:showAsAction="ifRoom|withText"
+    />
+
+    <item android:id="@+id/save_qr"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="@string/save"
+        app:showAsAction="ifRoom|withText"
+    />
+    <!--android:icon="@drawable/ic_drawer"-->
+    <item
+        android:id="@+id/action_more"
+        android:icon="@android:drawable/ic_menu_more"
+        android:title="@string/action_more"
+        android:orderInCategory="100"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/add_txt"
+                android:icon="@android:drawable/ic_menu_edit"
+                android:title="@string/add_text"
+                android:orderInCategory="101"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_settings"
+                android:icon="@android:drawable/ic_menu_preferences"
+                android:title="@string/action_settings"
+                android:orderInCategory="102"
+                app:showAsAction="never" />
+        </menu>
+
+    </item>
+
+
+    <!--<item-->
+        <!--android:id="@+id/action_settings"-->
+        <!--android:icon="@android:drawable/ic_menu_preferences"-->
+        <!--android:title="@string/action_settings"-->
+        <!--android:orderInCategory="100"-->
+        <!--app:showAsAction="never" />-->
+
 </menu>

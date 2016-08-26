@@ -3,4 +3,10 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="gallery">Gallery</string>
+    <string name="action_more">More</string>
+    <string name="convert">Convert</string>
+    <string name="add_text">Add text</string>
+    <string name="save">Save</string>
+    <string name="share">Share</string>
 </resources>

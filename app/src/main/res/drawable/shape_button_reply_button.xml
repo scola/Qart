@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners
+        android:bottomLeftRadius="4dp"
+        android:bottomRightRadius="4dp"
+        android:topLeftRadius="4dp"
+        android:topRightRadius="4dp"/>
+
+    <stroke
+        android:width="1dp"
+        android:color="#fbfbfb"/>
+
+    <solid android:color="@color/reply_button_disable"/>
+
+</shape>
