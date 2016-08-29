@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.CornerPathEffect;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
@@ -39,7 +40,8 @@ public class CuteR {
     private static final int BLACK = 0xFF000000;
 
     private static int[] patternCenters;
-    public static Bitmap Product(String txt, String output, String filename/*, Bitmap img, int version, ErrorCorrectionLevel errLevel*/){
+    public static Bitmap Product(String txt, Bitmap input/*, String output, String filename, int version, ErrorCorrectionLevel errLevel*/){
+        Log.d(TAG, "Product start input input.getWidth(): " + input.getWidth() + " input.getHeight(): " + input.getHeight());
         Bitmap QRImage = null;
         try {
             QRImage = encodeAsBitmap(txt);
@@ -47,7 +49,7 @@ public class CuteR {
             Log.e(TAG, "encodeAsBitmap: " + e);
         }
 
-        Bitmap input = BitmapFactory.decodeFile(filename);
+//        Bitmap input = BitmapFactory.decodeFile(filename);
 
         int inputSize = Math.max(input.getWidth(), input.getHeight());
         int scale = (int)Math.ceil(1.0 * inputSize / QRImage.getWidth());
@@ -66,6 +68,15 @@ public class CuteR {
             resizedImage = Bitmap.createScaledBitmap(input, (int)((scaledQRImage.getWidth() - scale  * 4 * 2) * (1.0 * input.getWidth() / input.getHeight())), scaledQRImage.getHeight() - scale  * 4 * 2, false);
             imageSize = resizedImage.getHeight();
         }
+
+//        if (input.getWidth() < input.getHeight()) {
+//            resizedImage = Bitmap.createScaledBitmap(input, (int)((scaledQRImage.getWidth() - scale  * 4 * 2) * (1.0 * input.getWidth() / input.getHeight())), scaledQRImage.getHeight() - scale  * 4 * 2, false);
+//            imageSize = resizedImage.getHeight();
+//        } else {
+//            resizedImage = Bitmap.createScaledBitmap(input, scaledQRImage.getWidth() - scale  * 4 * 2, (int)((scaledQRImage.getHeight() - scale  * 4 * 2) * (1.0 * input.getHeight() / input.getWidth())), false);
+//            imageSize = resizedImage.getWidth();
+//        }
+
         if (patternCenters == null || patternCenters.length == 0) {
             Log.e(TAG, "patternCenters == null || patternCenters.length == 0");
             return null;
@@ -115,28 +126,30 @@ public class CuteR {
                 scaledQRImage.setPixel(i + scale  * 4, j + scale  * 4, blackWhite.getPixel(i, j));
             }
         }
+        Log.d(TAG, "Product end input scaledQRImage.getWidth(): " + scaledQRImage.getWidth() + " scaledQRImage.getHeight(): " + scaledQRImage.getHeight());
+        return scaledQRImage;
 
-        OutputStream outputStream = null;
-        try {
-            outputStream = new FileOutputStream(new File(output));
-            if (scaledQRImage != null) {
-                scaledQRImage.compress(Bitmap.CompressFormat.PNG, 0, outputStream);
-            }
-        } catch (FileNotFoundException ex) {
-            Log.e(TAG, "file not found: " + ex);
-        } catch (IOException ex) {
-            Log.e(TAG, "IOException: " + ex);
-        } finally {
-            try {
-                if (outputStream != null) {
-                    outputStream.close();
-                }
-            }catch (IOException e) {
-                Log.e(TAG, "close file fail: +", e);
-            }
-        }
-
-        return null;
+//        OutputStream outputStream = null;
+//        try {
+//            outputStream = new FileOutputStream(new File(output));
+//            if (scaledQRImage != null) {
+//                scaledQRImage.compress(Bitmap.CompressFormat.PNG, 0, outputStream);
+//            }
+//        } catch (FileNotFoundException ex) {
+//            Log.e(TAG, "file not found: " + ex);
+//        } catch (IOException ex) {
+//            Log.e(TAG, "IOException: " + ex);
+//        } finally {
+//            try {
+//                if (outputStream != null) {
+//                    outputStream.close();
+//                }
+//            }catch (IOException e) {
+//                Log.e(TAG, "close file fail: +", e);
+//            }
+//        }
+//
+//        return null;
     }
 
     public static Bitmap encodeAsBitmap(String txt) throws WriterException {
@@ -411,6 +424,24 @@ public class CuteR {
         Bitmap mBitmap=Bitmap.createBitmap(width, height, img.getConfig());
         mBitmap.setPixels(pixels, 0, width, 0, 0, width, height);
         return mBitmap;
+    }
+
+    public static Bitmap rotateImage(Bitmap source, float angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix,
+                true);
+    }
+
+    public static Bitmap getResizedBitmap(Bitmap source, float scaleX, float scaleY) {
+        if (source == null) {
+            return null;
+        }
+        Bitmap bitmap = null;
+        Matrix matrix = new Matrix();
+        matrix.setScale(scaleX, scaleY);
+        bitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+        return bitmap;
     }
 
 }

@@ -61,6 +61,7 @@
             android:layout_width="56dp"
             android:layout_height="32dp"
             android:background="@drawable/shape_button_reply_button"
+            android:clickable="true"
             android:text="发送"
             android:textColor="@color/reply_button_text_disable"/>
     </LinearLayout>
