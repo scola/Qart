@@ -9,4 +9,5 @@
     <string name="add_text">Add text</string>
     <string name="save">Save</string>
     <string name="share">Share</string>
+    <string name="revert">Revert</string>
 </resources>

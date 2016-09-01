@@ -8,8 +8,11 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -24,10 +27,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.dss886.emotioninputdetector.library.EmotionInputDetector;
+import com.edmodo.cropper.CropImageView;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import free6om.research.qart4j.QArt;
 import io.github.scola.cuteqr.CuteR;
@@ -43,13 +52,15 @@ public class MainActivity extends ActionBarActivity {
 
     private boolean pickImage;
 
-    private ImageView pickPhoto;
+    private CropImageView pickPhoto;
 
     private MenuItem convertMenu;
     private MenuItem addTextMenu;
 
     private MenuItem shareMenu;
     private MenuItem saveMenu;
+    private MenuItem revertMenu;
+
     private LinearLayout editTextView;
 
     private EditText mEditTextView;
@@ -60,12 +71,15 @@ public class MainActivity extends ActionBarActivity {
     private Bitmap mOriginBitmap;
     private Bitmap mQRBitmap;
 
-    private EmotionInputDetector mDetector;
+    private File shareQr;
+
+    private boolean doubleBackToExitPressedOnce;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        pickPhoto = (ImageView)findViewById(R.id.pick_img);
+        pickPhoto = (CropImageView)findViewById(R.id.pick_img);
         editTextView = (LinearLayout)findViewById(R.id.text_group);
         mEditTextView = (EditText) findViewById(R.id.edit_text);
         qrButton = (ImageView)findViewById(R.id.emotion_button);
@@ -75,6 +89,8 @@ public class MainActivity extends ActionBarActivity {
 
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         qrText = sharedPref.getString(PREF_TEXT_FOR_QR, "hello world");
+
+        pickPhoto.setFixedAspectRatio(true);
 
 //        mDetector = EmotionInputDetector.with(this)
 //                .bindToContent(findViewById(R.id.list))
@@ -104,6 +120,25 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -112,6 +147,8 @@ public class MainActivity extends ActionBarActivity {
 
         shareMenu = menu.findItem(R.id.share_qr);
         saveMenu = menu.findItem(R.id.save_qr);
+
+        revertMenu = menu.findItem(R.id.revert_qr);
 
         hideQrMenu();
         hideSaveMenu();
@@ -167,8 +204,51 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (id == R.id.convert_qr) {
-            mQRBitmap = CuteR.Product(qrText, mOriginBitmap);
+            mQRBitmap = CuteR.Product(qrText, pickPhoto.getCroppedImage());
             pickPhoto.setImageBitmap(mQRBitmap);
+
+            hideQrMenu();
+            showSaveMenu();
+        }
+
+        if (id == R.id.share_qr) {
+            shareQr = new File(getExternalCacheDir(), "Pictures");
+            if (shareQr.exists() == false) {
+                shareQr.mkdirs();
+            }
+            File newFile = new File(shareQr, "qrImage.png");
+            Util.saveBitmap(mQRBitmap, newFile.toString());
+//            Uri contentUri = FileProvider.getUriForFile(this, "io.github.scola.qart.fileprovider", newFile);
+            Uri contentUri = Uri.parse("file://" + newFile.getAbsolutePath());
+
+            if (contentUri != null) {
+                Log.d(TAG, "Uri: " + contentUri);
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // temp permission for receiving app to read this file
+//                grantUriPermission(package, contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
+                shareIntent.setType("image/png");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                startActivity(Intent.createChooser(shareIntent, "Choose an app"));
+
+            }
+        }
+
+        if (id == R.id.save_qr) {
+            shareQr = new File(Environment.getExternalStorageDirectory(), "Pictures");
+            if (shareQr.exists() == false) {
+                shareQr.mkdirs();
+            }
+            File newFile = new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
+            Util.saveBitmap(mQRBitmap, newFile.toString());
+            Toast.makeText(this, "saved in " + newFile.getAbsolutePath(), Toast.LENGTH_LONG);
+        }
+
+        if (id == R.id.revert_qr) {
+            pickPhoto.setImageBitmap(mOriginBitmap);
+            hideSaveMenu();
+            showQrMenu();
         }
 
         return super.onOptionsItemSelected(item);
@@ -180,11 +260,13 @@ public class MainActivity extends ActionBarActivity {
             case REQUEST_PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
 //                    pickPhoto.setImageURI(data.getData());
+                    Log.d(TAG, "pick image URI: " + data.getData());
                     mOriginBitmap = getBitmapFromUri(data.getData());
                     String path = getRealPathFromURI(this, data.getData());
                     convertOrientation(path, mOriginBitmap);
                     pickPhoto.setImageBitmap(mOriginBitmap);
                     pickImage = true;
+                    hideSaveMenu();
                     showQrMenu();
                 }
                 break;
@@ -210,16 +292,18 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void hideSaveMenu() {
-        if (shareMenu != null && saveMenu != null) {
+        if (shareMenu != null && saveMenu != null && revertMenu != null) {
             shareMenu.setVisible(false);
             saveMenu.setVisible(false);
+            revertMenu.setVisible(false);
         }
     }
 
     public void showSaveMenu() {
-        if (shareMenu != null && saveMenu != null) {
+        if (shareMenu != null && saveMenu != null && revertMenu != null) {
             shareMenu.setVisible(true);
             saveMenu.setVisible(true);
+            revertMenu.setVisible(true);
         }
     }
 
@@ -295,7 +379,7 @@ public class MainActivity extends ActionBarActivity {
         Bitmap bitmap;
         try {
             bitmap = android.provider.MediaStore.Images.Media.getBitmap(cr, imageUri);
-            float scale = Math.min((float)1.0 * MAX_INPUT_BITMAP_WIDTH/bitmap.getWidth(), (float)1.0 * MAX_INPUT_BITMAP_HEIGHT/bitmap.getHeight());
+            float scale = Math.min((float) 1.0 * MAX_INPUT_BITMAP_WIDTH / bitmap.getWidth(), (float) 1.0 * MAX_INPUT_BITMAP_HEIGHT / bitmap.getHeight());
             if (scale < 1) {
                 bitmap = CuteR.getResizedBitmap(bitmap, scale, scale);
             }

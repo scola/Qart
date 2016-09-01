@@ -20,11 +20,6 @@
         app:showAsAction="ifRoom|withText"
     />
 
-    <item android:id="@+id/save_qr"
-        android:icon="@android:drawable/ic_menu_save"
-        android:title="@string/save"
-        app:showAsAction="ifRoom|withText"
-    />
     <!--android:icon="@drawable/ic_drawer"-->
     <item
         android:id="@+id/action_more"
@@ -33,18 +28,32 @@
         android:orderInCategory="100"
         app:showAsAction="always">
         <menu>
+            <item android:id="@+id/save_qr"
+                android:icon="@android:drawable/ic_menu_save"
+                android:title="@string/save"
+                android:orderInCategory="101"
+                app:showAsAction="never"
+                />
+
+            <item android:id="@+id/revert_qr"
+                android:icon="@android:drawable/ic_menu_revert"
+                android:title="@string/revert"
+                android:orderInCategory="102"
+                app:showAsAction="never"
+                />
+
             <item
                 android:id="@+id/add_txt"
                 android:icon="@android:drawable/ic_menu_edit"
                 android:title="@string/add_text"
-                android:orderInCategory="101"
+                android:orderInCategory="103"
                 app:showAsAction="never" />
 
             <item
                 android:id="@+id/action_settings"
                 android:icon="@android:drawable/ic_menu_preferences"
                 android:title="@string/action_settings"
-                android:orderInCategory="102"
+                android:orderInCategory="104"
                 app:showAsAction="never" />
         </menu>
 

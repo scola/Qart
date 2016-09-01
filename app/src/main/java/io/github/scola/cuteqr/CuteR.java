@@ -162,6 +162,7 @@ public class CuteR {
         if (encoding != null) {
             hints = new EnumMap<>(EncodeHintType.class);
             hints.put(EncodeHintType.CHARACTER_SET, encoding);
+//            hints.put(EncodeHintType.MIN_SIZE, "");
         }
 
         BitMatrix result;

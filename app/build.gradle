@@ -31,4 +31,5 @@ dependencies {
     compile files('libs/commons-imaging-1.0-SNAPSHOT.jar')
     //    compile 'com.github.dss886:Android-EmotionInputDetector:v0.2.0'
     compile project(':library')
+    compile 'com.edmodo:cropper:2.0.0'
 }
