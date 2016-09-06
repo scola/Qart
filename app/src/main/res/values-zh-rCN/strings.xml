@@ -1,0 +1,25 @@
+<resources>
+
+    <string name="gallery">相册</string>
+    <string name="action_more">更多</string>
+    <string name="convert">生成二维码 </string>
+    <string name="add_text">文本</string>
+    <string name="save">保存</string>
+    <string name="share">分享</string>
+    <string name="revert">撤销</string>
+    <string name="about">关于</string>
+    <string name="cancel_scan">扫描已取消</string>
+    <string name="share_via">分享到</string>
+    <string name="back_to_exit">再次点击返回键以退出应用</string>
+    <string name="default_qr_text">请输入自己的二维码文本或者点击右边的二维码图标扫描</string>
+    <string name="saved">已存入&#160;</string>
+    <string name="about_page">file:///android_asset/pages/about-cn.html</string>Qart
+    <string name="about_info_title">Qart %s</string>
+    <string name="about_info_share">分享</string>
+    <string name="share_content">Qart 将生成的二维码与选择的图片合成，生成的新二维码看起来更漂亮一点，试试吧 https://play.google.com/store/apps/details?id=io.github.scola.qart</string>
+    <string name="share_subject">试一下 Qart 生成二维码呗</string>
+    <string name="share_channel">分享到</string>
+    <string name="about_info_close">关闭</string>
+    <string name="converting">正在生成二维码，请稍等</string>
+
+</resources>

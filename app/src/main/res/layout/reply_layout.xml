@@ -53,7 +53,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:clickable="true"
-                android:src="@drawable/ic_emotion"/>
+                android:src="@drawable/ic_action_barcode_2"/>
         </LinearLayout>
 
         <Button
@@ -62,7 +62,7 @@
             android:layout_height="32dp"
             android:background="@drawable/shape_button_reply_button"
             android:clickable="true"
-            android:text="发送"
+            android:text="@android:string/ok"
             android:textColor="@color/reply_button_text_disable"/>
     </LinearLayout>
 

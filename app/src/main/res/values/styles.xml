@@ -19,6 +19,9 @@
         <item name="android:overlapAnchor" tools:targetApi="21">false</item>
     </style>
 
+    <style name="ProgressBar.Horizontal" parent="@android:style/Widget.Holo.ProgressBar.Horizontal">
+    </style>
+
     <!--<item name="android:background">@color/background_color</item>-->
     <!--<item name="background">@color/background_color</item>-->
 

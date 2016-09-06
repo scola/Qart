@@ -1,44 +1,51 @@
 package io.github.scola.qart;
 
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.dss886.emotioninputdetector.library.EmotionInputDetector;
 import com.edmodo.cropper.CropImageView;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
-import free6om.research.qart4j.QArt;
+import fr.castorflex.android.smoothprogressbar.SmoothProgressDrawable;
 import io.github.scola.cuteqr.CuteR;
 
 
@@ -50,7 +57,7 @@ public class MainActivity extends ActionBarActivity {
     private final static int MAX_INPUT_BITMAP_WIDTH = 720;
     private final static int MAX_INPUT_BITMAP_HEIGHT= 1280;
 
-    private boolean pickImage;
+    private boolean mConverting;
 
     private CropImageView pickPhoto;
 
@@ -75,8 +82,11 @@ public class MainActivity extends ActionBarActivity {
 
     private boolean doubleBackToExitPressedOnce;
 
+    private ProgressBar mProgressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         pickPhoto = (CropImageView)findViewById(R.id.pick_img);
@@ -85,29 +95,23 @@ public class MainActivity extends ActionBarActivity {
         qrButton = (ImageView)findViewById(R.id.emotion_button);
         setTextButton = (Button)findViewById(R.id.btn_send);
 
+        mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
+        mProgressBar.setIndeterminateDrawable(new SmoothProgressDrawable.Builder(this).interpolator(new AccelerateInterpolator()).build());
+        mProgressBar.setVisibility(View.INVISIBLE);
+
         mEditTextView.addTextChangedListener(TextWatcherNewInstance());
 
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        qrText = sharedPref.getString(PREF_TEXT_FOR_QR, "hello world");
+        qrText = sharedPref.getString(PREF_TEXT_FOR_QR, _(R.string.default_qr_text));
 
         pickPhoto.setFixedAspectRatio(true);
-
-//        mDetector = EmotionInputDetector.with(this)
-//                .bindToContent(findViewById(R.id.list))
-//                .bindToEditText(mEditTextView)
-//                .bindToEmotionButton(qrButton)
-//                .build();
 
         setTextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
                 String txt = mEditTextView.getText().toString().trim();
                 if (txt.isEmpty() == false) {
-                    qrText = txt;
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString(PREF_TEXT_FOR_QR, qrText);
-                    editor.commit();
-//                    mEditTextView.setInputType(InputType.TYPE_NULL);
+                    saveQrText(txt);
                     View view = MainActivity.this.getCurrentFocus();
                     if (view != null) {
                         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -115,6 +119,13 @@ public class MainActivity extends ActionBarActivity {
                     }
                     editTextView.setVisibility(View.INVISIBLE);
                 }
+            }
+        });
+
+        qrButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
             }
         });
     }
@@ -127,7 +138,7 @@ public class MainActivity extends ActionBarActivity {
         }
 
         this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, _(R.string.back_to_exit), Toast.LENGTH_SHORT).show();
 
         new Handler().postDelayed(new Runnable() {
 
@@ -162,30 +173,11 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Log.d(TAG, "Qart begin");
-//            QArt.main(new String[]{
-//                    "-i", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/panda.jpg",
-//                    "-o", android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/sample-output.png",
-//                    "-u", "http://www.imdb.com/title/tt2267968/",
-//                    "-w", "660",
-//                    "-h", "978",
-//                    "--mr", "147",
-//                    "--mb", "334",
-//                    "-z", "342",
-//                    "-v", "16",
-//                    "-q", "1",
-//                    "--cw", "EFFFFFFF"});
-
-//            CuteR.Product("http://www.chinuno.com#adffffffffffddddddddddddddddddddfdfdfdfasdfasfasfafasfafasfaasdfadfadfafadfadffffffffffddddddddddddddddddddfdfdfdfasdfasfasfafasfafasfaasdfadfadfafadfadffffffffffddddddddddddddddddddfdfdfdfasdfasfasfafasfafasfaasdfadfadfafadfadf",
-//                    android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/wushaozheng_no_align-output.png",
-//                    android.os.Environment.getExternalStorageDirectory().toString() + "/Pictures/wushaozheng.jpeg");
-            Log.d(TAG, "Qart end");
-            return true;
-        }
-
         if (id == R.id.launch_gallery) {
+            if (mConverting) {
+                Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
+                return true;
+            }
             Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
             photoPickerIntent.setType("image/*");
             startActivityForResult(photoPickerIntent, REQUEST_PICK_IMAGE);
@@ -204,11 +196,32 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (id == R.id.convert_qr) {
-            mQRBitmap = CuteR.Product(qrText, pickPhoto.getCroppedImage());
-            pickPhoto.setImageBitmap(mQRBitmap);
-
-            hideQrMenu();
-            showSaveMenu();
+            if (mConverting) {
+                Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            mConverting = true;
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground( Void... voids ) {
+                    mQRBitmap = CuteR.Product(qrText, pickPhoto.getCroppedImage());
+                    return null;
+                }
+                @Override
+                protected void onPostExecute(Void post) {
+                    super.onPostExecute(post);
+                    pickPhoto.setImageBitmap(mQRBitmap);
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                    hideQrMenu();
+                    showSaveMenu();
+                    mConverting = false;
+                }
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    mProgressBar.setVisibility(View.VISIBLE);
+                }
+            }.execute();
         }
 
         if (id == R.id.share_qr) {
@@ -218,19 +231,16 @@ public class MainActivity extends ActionBarActivity {
             }
             File newFile = new File(shareQr, "qrImage.png");
             Util.saveBitmap(mQRBitmap, newFile.toString());
-//            Uri contentUri = FileProvider.getUriForFile(this, "io.github.scola.qart.fileprovider", newFile);
             Uri contentUri = Uri.parse("file://" + newFile.getAbsolutePath());
 
             if (contentUri != null) {
                 Log.d(TAG, "Uri: " + contentUri);
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // temp permission for receiving app to read this file
-//                grantUriPermission(package, contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 shareIntent.setType("image/png");
                 shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-                startActivity(Intent.createChooser(shareIntent, "Choose an app"));
+                startActivity(Intent.createChooser(shareIntent, _(R.string.share_via)));
 
             }
         }
@@ -242,13 +252,17 @@ public class MainActivity extends ActionBarActivity {
             }
             File newFile = new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
             Util.saveBitmap(mQRBitmap, newFile.toString());
-            Toast.makeText(this, "saved in " + newFile.getAbsolutePath(), Toast.LENGTH_LONG);
+            Toast.makeText(this, _(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
         }
 
         if (id == R.id.revert_qr) {
             pickPhoto.setImageBitmap(mOriginBitmap);
             hideSaveMenu();
             showQrMenu();
+        }
+
+        if (id == R.id.about_info) {
+            openAbout();
         }
 
         return super.onOptionsItemSelected(item);
@@ -262,17 +276,26 @@ public class MainActivity extends ActionBarActivity {
 //                    pickPhoto.setImageURI(data.getData());
                     Log.d(TAG, "pick image URI: " + data.getData());
                     mOriginBitmap = getBitmapFromUri(data.getData());
-                    String path = getRealPathFromURI(this, data.getData());
-                    convertOrientation(path, mOriginBitmap);
+//                    String path = getRealPathFromURI(this, data.getData());
+                    convertOrientation(mOriginBitmap, data.getData());
                     pickPhoto.setImageBitmap(mOriginBitmap);
-                    pickImage = true;
                     hideSaveMenu();
                     showQrMenu();
                 }
                 break;
 
             default:
-                super.onActivityResult(requestCode, resultCode, data);
+                IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+                if(result != null) {
+                    if(result.getContents() == null) {
+                        Toast.makeText(this, _(R.string.cancel_scan), Toast.LENGTH_LONG).show();
+                    } else {
+//                        Toast.makeText(this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
+                        mEditTextView.setText(result.getContents());
+                    }
+                } else {
+                    super.onActivityResult(requestCode, resultCode, data);
+                }
                 break;
         }
     }
@@ -321,7 +344,7 @@ public class MainActivity extends ActionBarActivity {
                 String text = mEditTextView.getText().toString().trim();
                 if (text != null && text.isEmpty() == false) {
                     setTextButton.setClickable(true);
-                    setTextButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimaryDark));
+                    setTextButton.setTextColor(ContextCompat.getColor(MainActivity.this, android.R.color.black));
                 } else {
                     setTextButton.setClickable(false);
                     setTextButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.reply_button_text_disable));
@@ -348,29 +371,37 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public void convertOrientation(String photoPath, Bitmap bitmap) {
-        int orientation = ExifInterface.ORIENTATION_NORMAL;
-        try {
-            ExifInterface ei = new ExifInterface(photoPath);
-            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-        } catch (IOException ex) {
-            Log.e(TAG, "can not retrieve exif");
-        }
+    public void convertOrientation(Bitmap bitmap, Uri imageUri) {
+//        int orientation = ExifInterface.ORIENTATION_NORMAL;
+//        try {
+//            ExifInterface ei = new ExifInterface(photoPath);
+//            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+//        } catch (IOException ex) {
+//            Log.e(TAG, "can not retrieve exif");
+//        }
 
-        switch(orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                mOriginBitmap = CuteR.rotateImage(bitmap, 90);
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                mOriginBitmap = CuteR.rotateImage(bitmap, 180);
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                mOriginBitmap = CuteR.rotateImage(bitmap, 270);
-                break;
-            case ExifInterface.ORIENTATION_NORMAL:
-            default:
-                break;
+        String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
+        Cursor cur = getContentResolver().query(imageUri,  orientationColumn, null, null, null);
+        int orientation = 0;
+        if (cur != null && cur.moveToFirst()) {
+            orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
+            mOriginBitmap = CuteR.rotateImage(bitmap, orientation);
         }
+//
+//        switch(orientation) {
+//            case ExifInterface.ORIENTATION_ROTATE_90:
+//                mOriginBitmap = CuteR.rotateImage(bitmap, 90);
+//                break;
+//            case ExifInterface.ORIENTATION_ROTATE_180:
+//                mOriginBitmap = CuteR.rotateImage(bitmap, 180);
+//                break;
+//            case ExifInterface.ORIENTATION_ROTATE_270:
+//                mOriginBitmap = CuteR.rotateImage(bitmap, 270);
+//                break;
+//            case ExifInterface.ORIENTATION_NORMAL:
+//            default:
+//                break;
+//        }
     }
 
     public Bitmap getBitmapFromUri(Uri imageUri) {
@@ -387,6 +418,64 @@ public class MainActivity extends ActionBarActivity {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private void saveQrText(String txt) {
+        qrText = txt;
+        final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(PREF_TEXT_FOR_QR, qrText);
+        editor.commit();
+    }
+
+    private String _(int id) {
+        return getResources().getString(id);
+    }
+
+    private void openAbout() {
+        WebView web = new WebView(this);
+        web.loadUrl(_(R.string.about_page));
+        web.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                return true;
+            }
+        });
+        new AlertDialog.Builder(this)
+                .setTitle(String.format(_(R.string.about_info_title), getMyVersion(this)))
+                .setCancelable(false)
+                .setPositiveButton(R.string.about_info_share, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                        intent.setType("text/plain");
+                        intent.putExtra(Intent.EXTRA_SUBJECT, _(R.string.share_subject));
+                        intent.putExtra(Intent.EXTRA_TEXT, _(R.string.share_content));
+                        startActivity(Intent.createChooser(intent, _(R.string.share_channel)));
+                    }
+                })
+                .setNegativeButton(R.string.about_info_close, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                })
+                .setView(web)
+                .create()
+                .show();
+    }
+
+    public static String getMyVersion(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            if (null == packageInfo.versionName) {
+                return "Unknown";
+            } else {
+                return packageInfo.versionName;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "failed to get package info" + e);
+            return "Unknown";
         }
     }
 }

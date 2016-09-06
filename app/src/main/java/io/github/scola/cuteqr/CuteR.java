@@ -1,19 +1,15 @@
 package io.github.scola.cuteqr;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
-import android.graphics.CornerPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
-import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
-import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.qrcode.encoder.Encoder;
 import com.google.zxing.common.BitMatrix;
@@ -21,11 +17,6 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.google.zxing.qrcode.encoder.ByteMatrix;
 import com.google.zxing.qrcode.encoder.QRCode;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -40,7 +31,7 @@ public class CuteR {
     private static final int BLACK = 0xFF000000;
 
     private static int[] patternCenters;
-    public static Bitmap Product(String txt, Bitmap input/*, String output, String filename, int version, ErrorCorrectionLevel errLevel*/){
+    public static Bitmap Product(String txt, Bitmap input){
         Log.d(TAG, "Product start input input.getWidth(): " + input.getWidth() + " input.getHeight(): " + input.getHeight());
         Bitmap QRImage = null;
         try {
@@ -48,8 +39,6 @@ public class CuteR {
         } catch (WriterException e) {
             Log.e(TAG, "encodeAsBitmap: " + e);
         }
-
-//        Bitmap input = BitmapFactory.decodeFile(filename);
 
         int inputSize = Math.max(input.getWidth(), input.getHeight());
         int scale = (int)Math.ceil(1.0 * inputSize / QRImage.getWidth());
@@ -68,19 +57,11 @@ public class CuteR {
             resizedImage = Bitmap.createScaledBitmap(input, (int)((scaledQRImage.getWidth() - scale  * 4 * 2) * (1.0 * input.getWidth() / input.getHeight())), scaledQRImage.getHeight() - scale  * 4 * 2, false);
             imageSize = resizedImage.getHeight();
         }
-
-//        if (input.getWidth() < input.getHeight()) {
-//            resizedImage = Bitmap.createScaledBitmap(input, (int)((scaledQRImage.getWidth() - scale  * 4 * 2) * (1.0 * input.getWidth() / input.getHeight())), scaledQRImage.getHeight() - scale  * 4 * 2, false);
-//            imageSize = resizedImage.getHeight();
-//        } else {
-//            resizedImage = Bitmap.createScaledBitmap(input, scaledQRImage.getWidth() - scale  * 4 * 2, (int)((scaledQRImage.getHeight() - scale  * 4 * 2) * (1.0 * input.getHeight() / input.getWidth())), false);
-//            imageSize = resizedImage.getWidth();
+//
+//        if (patternCenters == null || patternCenters.length == 0) {
+//            Log.e(TAG, "patternCenters == null || patternCenters.length == 0");
+//            return null;
 //        }
-
-        if (patternCenters == null || patternCenters.length == 0) {
-            Log.e(TAG, "patternCenters == null || patternCenters.length == 0");
-            return null;
-        }
 
         int[][] pattern = new int[scaledQRImage.getWidth() - scale  * 4 * 2][scaledQRImage.getWidth() - scale  * 4 * 2];
 
@@ -120,36 +101,12 @@ public class CuteR {
                 if (pattern[i][j] == 1) {
                     continue;
                 }
-//                if (Color.alpha(resizedImage.getPixel(i, j)) == 0) {
-//                    continue;
-//                }
+
                 scaledQRImage.setPixel(i + scale  * 4, j + scale  * 4, blackWhite.getPixel(i, j));
             }
         }
         Log.d(TAG, "Product end input scaledQRImage.getWidth(): " + scaledQRImage.getWidth() + " scaledQRImage.getHeight(): " + scaledQRImage.getHeight());
         return scaledQRImage;
-
-//        OutputStream outputStream = null;
-//        try {
-//            outputStream = new FileOutputStream(new File(output));
-//            if (scaledQRImage != null) {
-//                scaledQRImage.compress(Bitmap.CompressFormat.PNG, 0, outputStream);
-//            }
-//        } catch (FileNotFoundException ex) {
-//            Log.e(TAG, "file not found: " + ex);
-//        } catch (IOException ex) {
-//            Log.e(TAG, "IOException: " + ex);
-//        } finally {
-//            try {
-//                if (outputStream != null) {
-//                    outputStream.close();
-//                }
-//            }catch (IOException e) {
-//                Log.e(TAG, "close file fail: +", e);
-//            }
-//        }
-//
-//        return null;
     }
 
     public static Bitmap encodeAsBitmap(String txt) throws WriterException {
@@ -162,7 +119,6 @@ public class CuteR {
         if (encoding != null) {
             hints = new EnumMap<>(EncodeHintType.class);
             hints.put(EncodeHintType.CHARACTER_SET, encoding);
-//            hints.put(EncodeHintType.MIN_SIZE, "");
         }
 
         BitMatrix result;
@@ -170,10 +126,10 @@ public class CuteR {
         try {
             qrCode = Encoder.encode(contentsToEncode, ErrorCorrectionLevel.H, hints);
             patternCenters = qrCode.getVersion().getAlignmentPatternCenters();
-//            result = new MultiFormatWriter().encode(contentsToEncode, BarcodeFormat.QR_CODE, dimension, dimension, hints);
+            // result = new MultiFormatWriter().encode(contentsToEncode, BarcodeFormat.QR_CODE, dimension, dimension, hints);
             result = renderResult(qrCode, 4);
         } catch (IllegalArgumentException iae) {
-// Unsupported format
+            // Unsupported format
             return null;
         }
         int width = result.getWidth();
@@ -190,7 +146,7 @@ public class CuteR {
         return bitmap;
     }
     private static String guessAppropriateEncoding(CharSequence contents) {
-// Very crude at the moment
+        // Very crude at the moment
         for (int i = 0; i < contents.length(); i++) {
             if (contents.charAt(i) > 0xFF) {
                 return "UTF-8";
@@ -199,8 +155,8 @@ public class CuteR {
         return null;
     }
 
- // Note that the input matrix uses 0 == white, 1 == black, while the output matrix uses
-// 0 == black, 255 == white (i.e. an 8 bit greyscale bitmap).
+    // Note that the input matrix uses 0 == white, 1 == black, while the output matrix uses
+    // 0 == black, 255 == white (i.e. an 8 bit greyscale bitmap).
     private static BitMatrix renderResult(QRCode code, int quietZone) {
         ByteMatrix input = code.getMatrix();
         if (input == null) {
@@ -213,15 +169,15 @@ public class CuteR {
         int outputWidth = Math.max(0, qrWidth);
         int outputHeight = Math.max(0, qrHeight);
         int multiple = Math.min(outputWidth / qrWidth, outputHeight / qrHeight);
-// Padding includes both the quiet zone and the extra white pixels to accommodate the requested
-// dimensions. For example, if input is 25x25 the QR will be 33x33 including the quiet zone.
-// If the requested size is 200x160, the multiple will be 4, for a QR of 132x132. These will
-// handle all the padding from 100x100 (the actual QR) up to 200x160.
+        // Padding includes both the quiet zone and the extra white pixels to accommodate the requested
+        // dimensions. For example, if input is 25x25 the QR will be 33x33 including the quiet zone.
+        // If the requested size is 200x160, the multiple will be 4, for a QR of 132x132. These will
+        // handle all the padding from 100x100 (the actual QR) up to 200x160.
         int leftPadding = (outputWidth - (inputWidth * multiple)) / 2;
         int topPadding = (outputHeight - (inputHeight * multiple)) / 2;
         BitMatrix output = new BitMatrix(outputWidth, outputHeight);
         for (int inputY = 0, outputY = topPadding; inputY < inputHeight; inputY++, outputY += multiple) {
-// Write the contents of this row of the barcode
+        // Write the contents of this row of the barcode
             for (int inputX = 0, outputX = leftPadding; inputX < inputWidth; inputX++, outputX += multiple) {
                 if (input.get(inputX, inputY) == 1) {
                     output.setRegion(outputX, outputY, multiple, multiple);
@@ -229,42 +185,6 @@ public class CuteR {
             }
         }
         return output;
-    }
-
-    public static Bitmap createBlackAndWhite(Bitmap src) {
-        int width = src.getWidth();
-        int height = src.getHeight();
-
-        Bitmap bmOut = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-
-        final float factor = 255f;
-        final float redBri = 0.2126f;
-        final float greenBri = 0.2126f;
-        final float blueBri = 0.0722f;
-
-        int length = width * height;
-        int[] inpixels = new int[length];
-        int[] oupixels = new int[length];
-
-        src.getPixels(inpixels, 0, width, 0, 0, width, height);
-
-        int point = 0;
-        for(int pix: inpixels){
-            int R = (pix >> 16) & 0xFF;
-            int G = (pix >> 8) & 0xFF;
-            int B = pix & 0xFF;
-
-            float lum = (redBri * R / factor) + (greenBri * G / factor) + (blueBri * B / factor);
-
-            if (lum > 0.4) {
-                oupixels[point] = 0xFFFFFFFF;
-            }else{
-                oupixels[point] = 0xFF000000;
-            }
-            point++;
-        }
-        bmOut.setPixels(oupixels, 0, width, 0, 0, width, height);
-        return bmOut;
     }
 
     public static Bitmap ConvertToBlackAndWhite(Bitmap sampleBitmap){

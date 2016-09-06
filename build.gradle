@@ -3,7 +3,7 @@
 buildscript {
     repositories {
         jcenter {
-            url "http://repo1.maven.org/maven2"
+            url "http://jcenter.bintray.com/"
         }
     }
     dependencies {
@@ -18,7 +18,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter {
-            url "http://repo1.maven.org/maven2"
+            url "http://jcenter.bintray.com/"
         }
     }
 }

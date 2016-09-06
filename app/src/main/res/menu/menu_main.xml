@@ -9,7 +9,7 @@
     />
 
     <item android:id="@+id/convert_qr"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@android:drawable/ic_menu_send"
         android:title="@string/convert"
         app:showAsAction="ifRoom|withText"
     />
@@ -50,9 +50,9 @@
                 app:showAsAction="never" />
 
             <item
-                android:id="@+id/action_settings"
-                android:icon="@android:drawable/ic_menu_preferences"
-                android:title="@string/action_settings"
+                android:id="@+id/about_info"
+                android:icon="@android:drawable/ic_menu_info_details"
+                android:title="@string/about"
                 android:orderInCategory="104"
                 app:showAsAction="never" />
         </menu>
