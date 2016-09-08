@@ -12,15 +12,15 @@
     <string name="cancel_scan">Scan cancelled</string>
     <string name="share_via">Share via</string>
     <string name="back_to_exit">Please press back key again to exit</string>
-    <string name="default_qr_text">Please input your own text to generate barcode, or press barcode button on the right</string>
+    <string name="default_qr_text">Please input your own text to generate QR code, or press QR code button on the right</string>
     <string name="saved">Saved in&#160;</string>
     <string name="about_page">file:///android_asset/pages/about-en.html</string>
     <string name="about_info_title">Qart %s</string>
     <string name="about_info_share"></string>
-    <string name="share_content">Qart is used to generate barcode that merge a picture. So the barcode looks more beautiful. Please try it https://play.google.com/store/apps/details?id=io.github.scola.qart</string>
+    <string name="share_content">Qart is used to generate QR code that merge a picture. So the QR code looks more beautiful. Please try it https://play.google.com/store/apps/details?id=io.github.scola.qart</string>
     <string name="share_subject">Invite to use Qart app</string>
     <string name="share_channel">Share via</string>
     <string name="about_info_close">Close</string>
-    <string name="converting">Converting barcode, please wait several second</string>
+    <string name="converting">Converting QR code, please wait several second</string>
 
 </resources>
