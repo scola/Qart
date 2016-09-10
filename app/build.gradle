@@ -9,8 +9,17 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.1"
     }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    aaptOptions {
+        cruncherEnabled false
+    }
+
     buildTypes {
         release {
             minifyEnabled false
