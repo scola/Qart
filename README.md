@@ -4,6 +4,8 @@ Qart ÊÇ»ùÓÚ [CuteR](https://github.com/chinuno-usami/CuteR) Õâ¸öÏîÄ¿µÄ Android Ó
 
 [![Google Play](http://developer.android.com/images/brand/en_generic_rgb_wo_45.png)](https://play.google.com/store/apps/details?id=io.github.scola.qart)
 
+[![¿áÊĞ³¡](http://image.coolapk.com/apk_logo/2016/0108/12202_1452248424_4592.png)](www.coolapk.com/apk/io.github.scola.qart)
+
 Opensource library
 ------------------
  * [zxing](https://github.com/zxing/zxing)
