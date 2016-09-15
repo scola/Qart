@@ -16,7 +16,7 @@ Opensource library
 Screenshot
 ------------------
 ### original  
-![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f7ue195vkmj20rl0to7na.jpg)  
+![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f7uexryho6j20gk0htdny.jpg)  
 
 ### blackwhite  
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f7jlvotdhwj20kf0kfdgm.jpg) 
