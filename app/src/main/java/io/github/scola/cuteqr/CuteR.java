@@ -31,13 +31,17 @@ public class CuteR {
     private static final int BLACK = 0xFF000000;
 
     private static int[] patternCenters;
-    public static Bitmap Product(String txt, Bitmap input){
+    public static Bitmap Product(String txt, Bitmap input, boolean colorful, int color){
         Log.d(TAG, "Product start input input.getWidth(): " + input.getWidth() + " input.getHeight(): " + input.getHeight());
         Bitmap QRImage = null;
         try {
             QRImage = encodeAsBitmap(txt);
         } catch (WriterException e) {
             Log.e(TAG, "encodeAsBitmap: " + e);
+        }
+
+        if (colorful && color != Color.BLACK) {
+            QRImage = replaceColor(QRImage, color);
         }
 
         int inputSize = Math.max(input.getWidth(), input.getHeight());
@@ -83,9 +87,13 @@ public class CuteR {
             }
         }
 
-        Bitmap blackWhite = createContrast(resizedImage, 50, 30);
-        blackWhite = ConvertToBlackAndWhite(blackWhite);
-        blackWhite = convertGreyImgByFloyd2(blackWhite);
+        Bitmap blackWhite = resizedImage;
+        if (colorful == false) {
+            blackWhite = createContrast(blackWhite, 50, 30);
+            blackWhite = ConvertToBlackAndWhite(blackWhite);
+            blackWhite = convertGreyImgByFloyd2(blackWhite);
+        }
+
         for (int i = 0; i < imageSize; i++) {
             for (int j = 0; j < imageSize; j++) {
                 if ((i * 3 / scale) % 3 == 1 && (j * 3 / scale) % 3 == 1) {
@@ -107,6 +115,23 @@ public class CuteR {
         }
         Log.d(TAG, "Product end input scaledQRImage.getWidth(): " + scaledQRImage.getWidth() + " scaledQRImage.getHeight(): " + scaledQRImage.getHeight());
         return scaledQRImage;
+    }
+
+    public static Bitmap replaceColor(Bitmap qrBitmap, int color) {
+        int [] allpixels = new int [qrBitmap.getHeight()*qrBitmap.getWidth()];
+
+        qrBitmap.getPixels(allpixels, 0, qrBitmap.getWidth(), 0, 0, qrBitmap.getWidth(), qrBitmap.getHeight());
+
+        for(int i = 0; i < allpixels.length; i++)
+        {
+            if(allpixels[i] == Color.BLACK)
+            {
+                allpixels[i] = color;
+            }
+        }
+
+        qrBitmap.setPixels(allpixels, 0, qrBitmap.getWidth(), 0, 0, qrBitmap.getWidth(), qrBitmap.getHeight());
+        return qrBitmap;
     }
 
     public static Bitmap encodeAsBitmap(String txt) throws WriterException {

@@ -21,5 +21,10 @@
     <string name="share_channel">分享到</string>
     <string name="about_info_close">关闭</string>
     <string name="converting">正在生成二维码，请稍等</string>
+    <string name="choose_color">选取颜色</string>
+    <string name="color_or_black">彩色还是黑白</string>
+    <string name="colorful_msg">Qart 能生成彩色或者黑白的二维码，如果选取彩色的话，请选择合适的颜色合成二维码以提高识别率</string>
+    <string name="black_white">黑白</string>
+    <string name="colorful">彩色</string>
 
 </resources>

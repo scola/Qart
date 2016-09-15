@@ -30,6 +30,7 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile(name:'colorpicker', ext:'aar')
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.google.zxing:core:3.2.1'
     compile 'com.edmodo:cropper:2.0.0'

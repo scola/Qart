@@ -22,5 +22,10 @@
     <string name="share_channel">Share via</string>
     <string name="about_info_close">Close</string>
     <string name="converting">Converting QR code, please wait several second</string>
+    <string name="choose_color">Choose color</string>
+    <string name="color_or_black">COLORFUL or BLACKWHITE</string>
+    <string name="colorful_msg">Qart can generate colorful or blackwhite QR Code. Please select proper color to generate QR Code for higher recognition rate</string>
+    <string name="black_white">BLACKWHITE</string>
+    <string name="colorful">COLORFUL</string>
 
 </resources>

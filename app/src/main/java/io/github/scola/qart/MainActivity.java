@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -37,11 +38,13 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.edmodo.cropper.CropImageView;
+import com.flask.colorpicker.ColorPickerView;
+import com.flask.colorpicker.builder.ColorPickerClickListener;
+import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -77,6 +80,7 @@ public class MainActivity extends ActionBarActivity {
     private String qrText;
     private Bitmap mOriginBitmap;
     private Bitmap mQRBitmap;
+    private Bitmap mCropImage;
 
     private File shareQr;
 
@@ -200,28 +204,44 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
                 return true;
             }
-            mConverting = true;
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground( Void... voids ) {
-                    mQRBitmap = CuteR.Product(qrText, pickPhoto.getCroppedImage());
-                    return null;
-                }
-                @Override
-                protected void onPostExecute(Void post) {
-                    super.onPostExecute(post);
-                    pickPhoto.setImageBitmap(mQRBitmap);
-                    mProgressBar.setVisibility(View.INVISIBLE);
-                    hideQrMenu();
-                    showSaveMenu();
-                    mConverting = false;
-                }
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    mProgressBar.setVisibility(View.VISIBLE);
-                }
-            }.execute();
+            new AlertDialog.Builder(this)
+                    .setTitle(_(R.string.color_or_black))
+                    .setMessage(_(R.string.colorful_msg))
+                    .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.cancel();
+                            ColorPickerDialogBuilder
+                                    .with(MainActivity.this)
+                                    .setTitle(R.string.choose_color)
+                                    .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+                                    .initialColor(Color.LTGRAY)
+                                    .density(12)
+                                    .lightnessSliderOnly()
+                                    .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
+                                            startConvert(true, selectedColor);
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            startConvert(true, Color.BLACK);
+                                        }
+                                    })
+                                    .showColorEdit(false)
+                                    .build()
+                                    .show();
+                        }
+                    })
+                    .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.cancel();
+                            startConvert(false, Color.BLACK);
+                        }
+                    })
+                    .create()
+                    .show();
         }
 
         if (id == R.id.share_qr) {
@@ -253,6 +273,9 @@ public class MainActivity extends ActionBarActivity {
             File newFile = new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
             Util.saveBitmap(mQRBitmap, newFile.toString());
             Toast.makeText(this, _(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            Uri uri = Uri.fromFile(newFile);
+            Intent scannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
+            sendBroadcast(scannerIntent);
         }
 
         if (id == R.id.revert_qr) {
@@ -266,6 +289,32 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startConvert(final boolean colorful, final int color) {
+        mConverting = true;
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground( Void... voids ) {
+                mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
+                return null;
+            }
+            @Override
+            protected void onPostExecute(Void post) {
+                super.onPostExecute(post);
+                pickPhoto.setImageBitmap(mQRBitmap);
+                mProgressBar.setVisibility(View.INVISIBLE);
+                hideQrMenu();
+                showSaveMenu();
+                mConverting = false;
+            }
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                mProgressBar.setVisibility(View.VISIBLE);
+                mCropImage = pickPhoto.getCroppedImage();
+            }
+        }.execute();
     }
 
     @Override
@@ -445,7 +494,6 @@ public class MainActivity extends ActionBarActivity {
         });
         new AlertDialog.Builder(this)
                 .setTitle(String.format(_(R.string.about_info_title), getMyVersion(this)))
-                .setCancelable(false)
                 .setPositiveButton(R.string.about_info_share, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Intent intent = new Intent(android.content.Intent.ACTION_SEND);
