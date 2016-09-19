@@ -23,9 +23,11 @@
     <string name="about_info_close">Close</string>
     <string name="converting">Converting QR code, please wait several second</string>
     <string name="choose_color">Choose color</string>
-    <string name="color_or_black">COLORFUL or BLACKWHITE</string>
-    <string name="colorful_msg">Qart can generate colorful or blackwhite QR Code. Please select proper color to generate QR Code for higher recognition rate</string>
+    <string name="color_or_black">BLACKWHITE or COLORFUL</string>
+    <string name="colorful_msg">Qart can generate blackwhite or colorful QR Code. Please select proper color for higher recognition rate. If the selected color brightness is too light or similar with selected picture, the QR code may not be detected</string>
     <string name="black_white">BLACKWHITE</string>
     <string name="colorful">COLORFUL</string>
+    <string name="select_white">You selected white color, generated QR code cannot be detected</string>
+    <string name="select_light">You selected color is too light, generated QR code may not be detected</string>
 
 </resources>

@@ -22,9 +22,11 @@
     <string name="about_info_close">关闭</string>
     <string name="converting">正在生成二维码，请稍等</string>
     <string name="choose_color">选取颜色</string>
-    <string name="color_or_black">彩色还是黑白</string>
-    <string name="colorful_msg">Qart 能生成彩色或者黑白的二维码，如果选取彩色的话，请选择合适的颜色合成二维码以提高识别率</string>
+    <string name="color_or_black">黑白还是彩色</string>
+    <string name="colorful_msg">Qart 能生成黑白或者彩色的二维码，如果选取彩色的话，请选择合适的颜色以提高识别率，如果选取的颜色太淡或者与选择的图片颜色相似，二维码可能会扫不出来</string>
     <string name="black_white">黑白</string>
     <string name="colorful">彩色</string>
+    <string name="select_white">你选取了白色，生成的二维码会扫不出来</string>
+    <string name="select_light">你选取的颜色太淡，生成的二维码可能会扫不出来</string>
 
 </resources>

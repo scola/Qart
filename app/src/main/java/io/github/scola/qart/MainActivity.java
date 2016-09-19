@@ -10,7 +10,6 @@ import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -59,6 +58,8 @@ public class MainActivity extends ActionBarActivity {
 
     private final static int MAX_INPUT_BITMAP_WIDTH = 720;
     private final static int MAX_INPUT_BITMAP_HEIGHT= 1280;
+
+    private final static int COLOR_BRIGHTNESS_THRESHOLD = 0x7f;
 
     private boolean mConverting;
 
@@ -214,12 +215,17 @@ public class MainActivity extends ActionBarActivity {
                                     .with(MainActivity.this)
                                     .setTitle(R.string.choose_color)
                                     .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
-                                    .initialColor(Color.LTGRAY)
+                                    .initialColor(Color.rgb(0x28, 0x32, 0x60))  //default blue
                                     .density(12)
                                     .lightnessSliderOnly()
                                     .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
+                                            if (selectedColor == Color.WHITE) {
+                                                Toast.makeText(MainActivity.this, R.string.select_white, Toast.LENGTH_LONG).show();
+                                            } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD){
+                                                Toast.makeText(MainActivity.this, R.string.select_light, Toast.LENGTH_LONG).show();
+                                            }
                                             startConvert(true, selectedColor);
                                         }
                                     })

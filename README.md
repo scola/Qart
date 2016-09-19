@@ -12,6 +12,7 @@ Opensource library
  * [zxing-android-embedded](https://github.com/journeyapps/zxing-android-embedded)
  * [cropper](https://github.com/edmodo/cropper)
  * [smoothprogressbar](https://github.com/castorflex/SmoothProgressBar)
+ * [colorpicker](https://github.com/QuadFlask/colorpicker)
  
 Screenshot
 ------------------
