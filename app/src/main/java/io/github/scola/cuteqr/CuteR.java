@@ -31,6 +31,8 @@ public class CuteR {
     private static final int BLACK = 0xFF000000;
 
     private static int[] patternCenters;
+    private static int scaleQR;
+    private static int MAX_INPUT_GIF_SIZE = 480;
     public static Bitmap Product(String txt, Bitmap input, boolean colorful, int color){
         Log.d(TAG, "Product start input input.getWidth(): " + input.getWidth() + " input.getHeight(): " + input.getHeight());
         Bitmap QRImage = null;
@@ -50,6 +52,7 @@ public class CuteR {
             scale += (3 - scale % 3);
         }
 
+        scaleQR = scale;
         Bitmap scaledQRImage = Bitmap.createScaledBitmap(QRImage, QRImage.getWidth() * scale, QRImage.getHeight() * scale, false);
 
         int imageSize = 0;
@@ -117,6 +120,38 @@ public class CuteR {
         return scaledQRImage;
     }
 
+    public static Bitmap[] ProductGIF(String txt, Bitmap[] input, boolean colorful, int color) {
+        Log.d(TAG, "ProductGIF start");
+        int maxSize = Math.min(MAX_INPUT_GIF_SIZE, input[0].getWidth());
+//        if (scale < 1) {
+//            for (int i = 0; i < input.length; i++) {
+//                input[i] = getResizedBitmap(input[i], scale, scale);
+//            }
+//        }
+        Bitmap white =  Bitmap.createBitmap(maxSize, maxSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(white);
+        canvas.drawColor(Color.WHITE);
+        Bitmap whiteQR = Product(txt, white, colorful, color);
+
+        Bitmap[] output = new Bitmap[input.length];
+        int i = 0;
+        double scale = 3.0/4;
+        int resizedImageSize = (whiteQR.getWidth() - scaleQR  * 4 * 2);
+
+        for (Bitmap inputBitmap : input) {
+            Bitmap resizeImage = Bitmap.createScaledBitmap(inputBitmap, (int)(resizedImageSize*scale), (int)(resizedImageSize*scale), false);
+            Bitmap finalImage =  Bitmap.createBitmap(whiteQR.getWidth(), whiteQR.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvasQR = new Canvas(finalImage);
+            canvasQR.drawColor(Color.WHITE);
+            canvasQR.drawBitmap(resizeImage, scaleQR * 4 + (resizedImageSize - (int)(resizedImageSize*scale))/2, scaleQR * 4 + (resizedImageSize - (int)(resizedImageSize*scale))/2, null);
+            finalImage = replaceQR(whiteQR, finalImage);
+            output[i] = finalImage;
+            i++;
+        }
+        Log.d(TAG, "ProductGIF end");
+        return output;
+    }
+
     public static Bitmap replaceColor(Bitmap qrBitmap, int color) {
         int [] allpixels = new int [qrBitmap.getHeight()*qrBitmap.getWidth()];
 
@@ -132,6 +167,24 @@ public class CuteR {
 
         qrBitmap.setPixels(allpixels, 0, qrBitmap.getWidth(), 0, 0, qrBitmap.getWidth(), qrBitmap.getHeight());
         return qrBitmap;
+    }
+
+    public static Bitmap replaceQR(Bitmap qrBitmap, Bitmap image) {
+        int width = qrBitmap.getWidth();         //获取位图的宽
+        int height = qrBitmap.getHeight();       //获取位图的高
+
+        int[] pixels = new int[width * height]; //通过位图的大小创建像素点数组
+
+        qrBitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+        int[] gray=new int[height*width];
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (pixels[width * i + j] != Color.WHITE) {
+                    image.setPixel(i, j, pixels[width * i + j]);
+                }
+            }
+        }
+        return image;
     }
 
     public static Bitmap encodeAsBitmap(String txt) throws WriterException {

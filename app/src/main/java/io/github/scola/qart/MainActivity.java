@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -37,6 +39,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -48,11 +51,16 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressDrawable;
 import io.github.scola.cuteqr.CuteR;
+import io.github.scola.gif.AnimatedGifEncoder;;
+import pl.droidsonroids.gif.GifDrawable;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -88,10 +96,17 @@ public class MainActivity extends ActionBarActivity {
     private Bitmap mCropImage;
 
     private File shareQr;
+    private File gifQr;
 
     private boolean doubleBackToExitPressedOnce;
 
     private ProgressBar mProgressBar;
+
+    private boolean mGif;
+    private GifDrawable mGifDrawable;
+
+    private Bitmap[] gifArray;
+    private Bitmap[] QRGifArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,39 +224,17 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
                 return true;
             }
-            new AlertDialog.Builder(this)
+
+            if (mGif) {
+                chooseColor();
+            } else {
+                new AlertDialog.Builder(this)
                     .setTitle(_(R.string.color_or_black))
                     .setMessage(_(R.string.colorful_msg))
                     .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialogInterface, int i) {
                             dialogInterface.cancel();
-                            ColorPickerDialogBuilder
-                                    .with(MainActivity.this)
-                                    .setTitle(R.string.choose_color)
-                                    .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
-                                    .initialColor(Color.rgb(0x28, 0x32, 0x60))  //default blue
-                                    .density(12)
-                                    .lightnessSliderOnly()
-                                    .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
-                                            if (selectedColor == Color.WHITE) {
-                                                Toast.makeText(MainActivity.this, R.string.select_white, Toast.LENGTH_LONG).show();
-                                            } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD){
-                                                Toast.makeText(MainActivity.this, R.string.select_light, Toast.LENGTH_LONG).show();
-                                            }
-                                            startConvert(true, selectedColor);
-                                        }
-                                    })
-                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            startConvert(true, Color.BLACK);
-                                        }
-                                    })
-                                    .showColorEdit(false)
-                                    .build()
-                                    .show();
+                            chooseColor();
                         }
                     })
                     .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
@@ -252,6 +245,8 @@ public class MainActivity extends ActionBarActivity {
                     })
                     .create()
                     .show();
+            }
+
         }
 
         if (id == R.id.share_qr) {
@@ -259,9 +254,12 @@ public class MainActivity extends ActionBarActivity {
             if (shareQr.exists() == false) {
                 shareQr.mkdirs();
             }
-            File newFile = new File(shareQr, "qrImage.png");
-            Util.saveBitmap(mQRBitmap, newFile.toString());
-            Uri contentUri = Uri.parse("file://" + newFile.getAbsolutePath());
+            File newFile = mGif ? new File(shareQr, "qrImage.gif") : new File(shareQr, "qrImage.png");
+            if (!mGif) {
+                Util.saveBitmap(mQRBitmap, newFile.toString());
+            }
+
+            Uri contentUri = Uri.fromFile(newFile);
 
             if (contentUri != null) {
                 Log.d(TAG, "Uri: " + contentUri);
@@ -271,7 +269,6 @@ public class MainActivity extends ActionBarActivity {
                 shareIntent.setType("image/png");
                 shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
                 startActivity(Intent.createChooser(shareIntent, _(R.string.share_via)));
-
             }
         }
 
@@ -280,8 +277,20 @@ public class MainActivity extends ActionBarActivity {
             if (shareQr.exists() == false) {
                 shareQr.mkdirs();
             }
-            File newFile = new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
-            Util.saveBitmap(mQRBitmap, newFile.toString());
+
+            File newFile = mGif ? new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".gif")
+                                : new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
+
+            if (mGif) {
+                try {
+                    Util.copy(new File(getExternalCacheDir(), "Pictures/qrImage.gif"), newFile);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            } else {
+                Util.saveBitmap(mQRBitmap, newFile.toString());
+            }
+
             Toast.makeText(this, _(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
             Uri uri = Uri.fromFile(newFile);
             Intent scannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
@@ -289,7 +298,12 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (id == R.id.revert_qr) {
-            pickPhoto.setImageBitmap(mOriginBitmap);
+            if (mGif) {
+                pickPhoto.setImageDrawable(mGifDrawable);
+            } else {
+                pickPhoto.setImageBitmap(mOriginBitmap);
+            }
+
             hideSaveMenu();
             showQrMenu();
         }
@@ -299,6 +313,36 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void chooseColor() {
+        ColorPickerDialogBuilder
+                .with(MainActivity.this)
+                .setTitle(R.string.choose_color)
+                .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+                .initialColor(Color.rgb(0x28, 0x32, 0x60))  //default blue
+                .density(12)
+                .lightnessSliderOnly()
+                .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
+                        if (selectedColor == Color.WHITE) {
+                            Toast.makeText(MainActivity.this, R.string.select_white, Toast.LENGTH_LONG).show();
+                        } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD){
+                            Toast.makeText(MainActivity.this, R.string.select_light, Toast.LENGTH_LONG).show();
+                        }
+                        startConvert(true, selectedColor);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startConvert(true, Color.BLACK);
+                    }
+                })
+                .showColorEdit(false)
+                .build()
+                .show();
     }
 
     private void launchGallery() {
@@ -312,13 +356,51 @@ public class MainActivity extends ActionBarActivity {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground( Void... voids ) {
-                mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
+                if (mGif) {
+                    QRGifArray = CuteR.ProductGIF(qrText, gifArray, colorful, color);
+                    shareQr = new File(getExternalCacheDir(), "Pictures");
+                    if (shareQr.exists() == false) {
+                        shareQr.mkdirs();
+                    }
+
+                    gifQr = new File(shareQr, "qrImage.gif");
+                    FileOutputStream fos = null;
+                    try {
+                        fos = new FileOutputStream(gifQr);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (fos != null) {
+                        AnimatedGifEncoder gifEncoder = new AnimatedGifEncoder();
+                        gifEncoder.setRepeat(0);
+                        gifEncoder.start(fos);
+
+                        for (Bitmap bitmap : QRGifArray) {
+                            Log.d(TAG, "gifEncoder.addFrame");
+                            gifEncoder.addFrame(bitmap);
+                        }
+                        gifEncoder.finish();
+                    }
+                } else {
+                    mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
+                }
                 return null;
             }
             @Override
             protected void onPostExecute(Void post) {
                 super.onPostExecute(post);
-                pickPhoto.setImageBitmap(mQRBitmap);
+                if (mGif) {
+                    try {
+                        pickPhoto.setImageDrawable(new GifDrawable(gifQr));
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+//                    Toast.makeText(MainActivity.this, "Saved.", Toast.LENGTH_SHORT).show();
+                } else {
+                    pickPhoto.setImageBitmap(mQRBitmap);
+                }
+
                 mProgressBar.setVisibility(View.INVISIBLE);
                 hideQrMenu();
                 showSaveMenu();
@@ -328,7 +410,17 @@ public class MainActivity extends ActionBarActivity {
             protected void onPreExecute() {
                 super.onPreExecute();
                 mProgressBar.setVisibility(View.VISIBLE);
-                mCropImage = pickPhoto.getCroppedImage();
+                if (mGif) {
+                    pickPhoto.setImageBitmap(mOriginBitmap);
+                    gifArray = new Bitmap[mGifDrawable.getNumberOfFrames()];
+                    for (int i = 0; i < gifArray.length; i++) {
+                        gifArray[i] = pickPhoto.getCroppedImage(mGifDrawable.seekToFrameAndGet(i));
+                    }
+                } else {
+                    mCropImage = pickPhoto.getCroppedImage(mOriginBitmap);
+                }
+
+
             }
         }.execute();
     }
@@ -340,10 +432,44 @@ public class MainActivity extends ActionBarActivity {
                 if (resultCode == RESULT_OK) {
 //                    pickPhoto.setImageURI(data.getData());
                     Log.d(TAG, "pick image URI: " + data.getData());
-                    mOriginBitmap = getBitmapFromUri(data.getData());
+                    if (mGifDrawable != null) {
+                        mGifDrawable.recycle();
+                    }
+
+                    try {
+                        String path = getRealPathFromURI(this, data.getData());
+                        if (path.toLowerCase().endsWith(".gif")) {
+                            mGif = true;
+                            mGifDrawable = new GifDrawable(path);
+                            pickPhoto.setImageDrawable(mGifDrawable);
+                            mOriginBitmap = mGifDrawable.seekToFrameAndGet(0);
+
+                        } else {
+                            mGif = false;
+                            mOriginBitmap = getBitmapFromUri(data.getData());
+                            convertOrientation(mOriginBitmap, data.getData());
+                            pickPhoto.setImageBitmap(mOriginBitmap);
+                        }
+                    }catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
 //                    String path = getRealPathFromURI(this, data.getData());
-                    convertOrientation(mOriginBitmap, data.getData());
-                    pickPhoto.setImageBitmap(mOriginBitmap);
+//                    convertOrientation(mOriginBitmap, data.getData());
+//                    pickPhoto.setImageBitmap(mOriginBitmap);
+//                    GifAnimationDrawable gif = null;
+//                    try {
+//                        gif = new GifAnimationDrawable(new File(getRealPathFromURI(this, data.getData())), this);
+//                        gif.setOneShot(false);
+//                    } catch (Resources.NotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    pickPhoto.setImageDrawable(gif);
+//                    gif.setVisible(true, true);
                     hideSaveMenu();
                     showQrMenu();
                 }
