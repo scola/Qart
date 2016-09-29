@@ -13,6 +13,8 @@ Opensource library
  * [cropper](https://github.com/edmodo/cropper)
  * [smoothprogressbar](https://github.com/castorflex/SmoothProgressBar)
  * [colorpicker](https://github.com/QuadFlask/colorpicker)
+ * [android-gif-drawable](https://github.com/koral--/android-gif-drawable)
+ * [android-gif-encoder](https://github.com/nbadal/android-gif-encoder)
  
 Screenshot
 ------------------
