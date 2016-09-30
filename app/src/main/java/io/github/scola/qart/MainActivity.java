@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
@@ -118,6 +119,9 @@ public class MainActivity extends ActionBarActivity {
     private static final int LOGO_MODE = 2;
     private static final int EMBED_MODE = 3;
 
+    private CropImageView.CropPosSize mCropSize;
+    private boolean mPickImage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -140,6 +144,7 @@ public class MainActivity extends ActionBarActivity {
         mCurrentMode = sharedPref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE);
 
         pickPhoto.setFixedAspectRatio(true);
+        mOriginBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.guide_img);
 
         setTextButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -309,14 +314,7 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (id == R.id.revert_qr) {
-            if (mGif) {
-                pickPhoto.setImageDrawable(mGifDrawable);
-            } else {
-                pickPhoto.setImageBitmap(mOriginBitmap);
-            }
-
-            hideSaveMenu();
-            showQrMenu();
+            revertQR(true);
         }
 
         if (id == R.id.about_info) {
@@ -328,6 +326,23 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void revertQR(boolean showFrame) {
+        pickPhoto.setShowSelectFrame(showFrame);
+        if (mGif) {
+            pickPhoto.setImageDrawable(mGifDrawable);
+        } else {
+            pickPhoto.setImageBitmap(mOriginBitmap);
+        }
+
+        hideSaveMenu();
+        if (showFrame) {
+            showQrMenu();
+        } else {
+            hideQrMenu();
+        }
+
     }
 
     private void chooseColor() {
@@ -403,9 +418,10 @@ public class MainActivity extends ActionBarActivity {
                             mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
                             break;
                         case LOGO_MODE:
-                            mQRBitmap = CuteR.ProductLogo(mCropImage, qrText);
+                            mQRBitmap = CuteR.ProductLogo(mCropImage, qrText, colorful, color);
                             break;
                         case EMBED_MODE:
+                            mQRBitmap = CuteR.ProductEmbed(qrText, mCropImage, colorful, color, mCropSize.x, mCropSize.y, mOriginBitmap);
                             break;
                         default:
                             break;
@@ -417,6 +433,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             protected void onPostExecute(Void post) {
                 super.onPostExecute(post);
+                pickPhoto.setShowSelectFrame(false);
                 if (mGif) {
                     try {
                         pickPhoto.setImageDrawable(new GifDrawable(gifQr));
@@ -450,6 +467,9 @@ public class MainActivity extends ActionBarActivity {
                     mCropImage = pickPhoto.getCroppedImage(mOriginBitmap);
                 }
 
+                if (mCurrentMode == EMBED_MODE) {
+                    mCropSize = pickPhoto.getCroppedSize(mOriginBitmap);
+                }
 
             }
         }.execute();
@@ -466,6 +486,8 @@ public class MainActivity extends ActionBarActivity {
                         mGifDrawable.recycle();
                     }
 
+                    mPickImage = true;
+                    pickPhoto.setShowSelectFrame(true);
                     try {
                         String path = getRealPathFromURI(this, data.getData());
                         if (path.toLowerCase().endsWith(".gif")) {
@@ -673,7 +695,7 @@ public class MainActivity extends ActionBarActivity {
             showSaveMenu();
             hideGalleryMenu();
             hideRevertMenu();
-            mQRBitmap = CuteR.ProductNormal(qrText);
+            mQRBitmap = CuteR.ProductNormal(qrText, false, Color.BLACK);
             pickPhoto.setImageBitmap(mQRBitmap);
         }
 
@@ -829,14 +851,14 @@ public class MainActivity extends ActionBarActivity {
             case NORMAL_MODE:
                 hideGalleryMenu();
                 hideQrMenu();
-                mQRBitmap = CuteR.ProductNormal(qrText);
+                mQRBitmap = CuteR.ProductNormal(qrText, false, Color.BLACK);
                 pickPhoto.setImageBitmap(mQRBitmap);
                 showSaveMenu();
                 hideRevertMenu();
                 break;
             default:
                 showGalleryMenu();
-                hideQrMenu();
+                revertQR(mPickImage);
                 break;
         }
     }

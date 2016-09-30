@@ -29,5 +29,11 @@
     <string name="colorful">COLORFUL</string>
     <string name="select_white">You selected white color, generated QR code cannot be detected</string>
     <string name="select_light">You selected color is too light, generated QR code may not be detected</string>
+    <string name="select_mode">Mode</string>
+    <string name="select_mode_title">Select one mode</string>
+    <string name="normal_mode">Normal</string>
+    <string name="picture_mode">Picture</string>
+    <string name="logo_mode">Logo</string>
+    <string name="embed_mode">Embed</string>
 
 </resources>

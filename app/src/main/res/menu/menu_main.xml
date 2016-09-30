@@ -28,17 +28,18 @@
         android:orderInCategory="100"
         app:showAsAction="always">
         <menu>
+
             <item android:id="@+id/save_qr"
                 android:icon="@android:drawable/ic_menu_save"
                 android:title="@string/save"
-                android:orderInCategory="101"
+                android:orderInCategory="102"
                 app:showAsAction="never"
                 />
 
             <item android:id="@+id/revert_qr"
                 android:icon="@android:drawable/ic_menu_revert"
                 android:title="@string/revert"
-                android:orderInCategory="102"
+                android:orderInCategory="103"
                 app:showAsAction="never"
                 />
 
@@ -46,14 +47,21 @@
                 android:id="@+id/add_txt"
                 android:icon="@android:drawable/ic_menu_edit"
                 android:title="@string/add_text"
-                android:orderInCategory="103"
+                android:orderInCategory="104"
                 app:showAsAction="never" />
+
+            <item android:id="@+id/select_mode"
+                android:icon="@android:drawable/ic_menu_slideshow"
+                android:title="@string/select_mode"
+                android:orderInCategory="105"
+                app:showAsAction="never"
+                />
 
             <item
                 android:id="@+id/about_info"
                 android:icon="@android:drawable/ic_menu_info_details"
                 android:title="@string/about"
-                android:orderInCategory="104"
+                android:orderInCategory="106"
                 app:showAsAction="never" />
         </menu>
 

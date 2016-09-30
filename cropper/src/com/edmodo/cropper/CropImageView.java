@@ -108,6 +108,8 @@ public class CropImageView extends ImageView {
     // Mode indicating how/whether to show the guidelines; must be one of GUIDELINES_OFF, GUIDELINES_ON_TOUCH, GUIDELINES_ON.
     private int mGuidelinesMode = 1;
 
+    private boolean showSelectFrame;
+
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     public CropImageView(Context context) {
@@ -163,6 +165,9 @@ public class CropImageView extends ImageView {
     protected void onDraw(Canvas canvas) {
 
         super.onDraw(canvas);
+        if (showSelectFrame == false) {
+            return;
+        }
 
         drawDarkenedSurroundingArea(canvas);
         drawGuidelines(canvas);
@@ -254,7 +259,7 @@ public class CropImageView extends ImageView {
      *
      * @return a new Bitmap representing the cropped image
      */
-    public Bitmap getCroppedImage(final Bitmap originalBitmap) {
+    public CropPosSize getCroppedSize(final Bitmap originalBitmap) {
 
         // Implementation reference: http://stackoverflow.com/a/26930938/1068656
 
@@ -289,12 +294,33 @@ public class CropImageView extends ImageView {
         final float cropWidth = Math.min(Edge.getWidth() / scaleX, originalBitmap.getWidth() - cropX);
         final float cropHeight = Math.min(Edge.getHeight() / scaleY, originalBitmap.getHeight() - cropY);
 
+        CropPosSize cropSize = new CropPosSize();
+        cropSize.x = (int) cropX;
+        cropSize.y = (int) cropY;
+        cropSize.width = (int) cropWidth;
+        cropSize.height = (int) cropHeight;
+
+        return cropSize;
+
+    }
+
+    public Bitmap getCroppedImage(final Bitmap originalBitmap) {
+        CropPosSize cropSize = getCroppedSize(originalBitmap);
+
         // Crop the subset from the original Bitmap.
         return Bitmap.createBitmap(originalBitmap,
-                                   (int) cropX,
-                                   (int) cropY,
-                                   (int) cropWidth,
-                                   (int) cropHeight);
+                cropSize.x,
+                cropSize.y,
+                cropSize.width,
+                cropSize.height);
+    }
+
+    public boolean isShowSelectFrame() {
+        return showSelectFrame;
+    }
+
+    public void setShowSelectFrame(boolean showSelectFrame) {
+        this.showSelectFrame = showSelectFrame;
     }
 
     // Private Methods /////////////////////////////////////////////////////////////////////////////
@@ -553,6 +579,13 @@ public class CropImageView extends ImageView {
             mPressedHandle.updateCropWindow(x, y, mBitmapRect, mSnapRadius);
         }
         invalidate();
+    }
+
+    public class CropPosSize {
+        public int x;
+        public int y;
+        public int width;
+        public int height;
     }
 
 }

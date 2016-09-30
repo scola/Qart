@@ -128,18 +128,48 @@ public class CuteR {
         return scaledQRImage;
     }
 
-    public static Bitmap ProductNormal(String txt) {
+    public static Bitmap ProductEmbed(String txt, Bitmap input, boolean colorful, int color, int x, int y, Bitmap originBitmap){
+        int originalSize = input.getWidth();
+        Bitmap qrBitmap = Product(txt, input, colorful, color);
+        double newScale = 1.0 * qrBitmap.getWidth() * scaleQR / (qrBitmap.getWidth() - 2 * 4 * scaleQR);
+        int targetSize = qrBitmap.getWidth() * originalSize / (qrBitmap.getWidth() - 2 * 4 * scaleQR);
+        qrBitmap = resizeQuiteZone(qrBitmap, newScale); //it does not match QR spec to cut the qr quiet zone
+        qrBitmap = Bitmap.createScaledBitmap(qrBitmap, targetSize, targetSize, false);
+        originBitmap = originBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(originBitmap);
+        canvas.drawBitmap(qrBitmap, x - (int) (4 * newScale), y - (int) (4 * newScale), null);
+        return originBitmap;
+    }
+
+    private static Bitmap resizeQuiteZone(Bitmap qrBitmap, double scale) {
+        int size = qrBitmap.getWidth();
+        int boundary = (int) (3 * scale);
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i < boundary || i > size - (boundary + 1) || j < boundary || j > size - (boundary + 1)) {
+                    qrBitmap.setPixel(i, j, Color.TRANSPARENT);
+                }
+            }
+        }
+        return qrBitmap;
+    }
+
+    public static Bitmap ProductNormal(String txt, boolean colorful, int color) {
         Bitmap QRImage = null;
         try {
             QRImage = encodeAsBitmap(txt);
         } catch (WriterException e) {
             Log.e(TAG, "encodeAsBitmap: " + e);
         }
+
+        if (colorful && color != Color.BLACK) {
+            QRImage = replaceColor(QRImage, color);
+        }
         return Bitmap.createScaledBitmap(QRImage, QRImage.getWidth() * SCALE_NORMAL_QR, QRImage.getHeight() * SCALE_NORMAL_QR, false);
     }
 
-    public static Bitmap ProductLogo(Bitmap logo, String txt) {
-        Bitmap qrImage = ProductNormal(txt);
+    public static Bitmap ProductLogo(Bitmap logo, String txt, boolean colorful, int color) {
+        Bitmap qrImage = ProductNormal(txt, colorful, color);
         int fullSize = qrImage.getWidth() - 4 * 2 * SCALE_NORMAL_QR;
         int finalSize = (int) (logo.getWidth() * FULL_LOGO_QR / LOGO_SIZE);
         finalSize = Math.min(finalSize, MAX_LOGO_SIZE);

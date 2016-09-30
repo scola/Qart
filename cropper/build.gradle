@@ -15,6 +15,12 @@ android {
         targetSdkVersion 23
     }
 
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'

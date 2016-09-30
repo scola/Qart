@@ -18,14 +18,23 @@ Opensource library
  
 Screenshot
 ------------------
-### original  
+### Original  
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f7uexryho6j20gk0htdny.jpg)  
 
-### blackwhite  
+### Blackwhite  
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f7jlvotdhwj20kf0kfdgm.jpg) 
  
-### colorful
+### Colorful
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f7udyagbkxj20kf0kfgrz.jpg)
+
+### Gif
+![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8bqzrkav7g20c90c9466)
+
+### Logo
+![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8bqzvibw9j20kf0kfdh6.jpg)
+
+### Embed
+![Screenshot](ww2.sinaimg.cn/large/a15b4afegw1f8br0aiow1j20ic0r67sa.jpg)  
     
 License
 -----
