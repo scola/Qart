@@ -34,7 +34,7 @@ Screenshot
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8bqzvibw9j20kf0kfdh6.jpg)
 
 ### Embed
-![Screenshot](ww2.sinaimg.cn/large/a15b4afegw1f8br0aiow1j20ic0r67sa.jpg)  
+![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8br0aiow1j20ic0r67sa.jpg)  
     
 License
 -----
