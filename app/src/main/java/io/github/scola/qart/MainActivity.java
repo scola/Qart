@@ -35,6 +35,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -67,6 +68,7 @@ public class MainActivity extends ActionBarActivity {
     private final static String TAG = "MainActivity";
     private final static int REQUEST_PICK_IMAGE = 1;
     private final static String PREF_TEXT_FOR_QR = "text";
+    private final static String PREF_MODE_FOR_QR = "mode";
 
     private final static int MAX_INPUT_BITMAP_WIDTH = 720;
     private final static int MAX_INPUT_BITMAP_HEIGHT= 1280;
@@ -83,6 +85,7 @@ public class MainActivity extends ActionBarActivity {
     private MenuItem shareMenu;
     private MenuItem saveMenu;
     private MenuItem revertMenu;
+    private MenuItem galleryMenu;
 
     private LinearLayout editTextView;
 
@@ -108,6 +111,13 @@ public class MainActivity extends ActionBarActivity {
     private Bitmap[] gifArray;
     private Bitmap[] QRGifArray;
 
+    private int mCurrentMode;
+
+    private static final int NORMAL_MODE = 0;
+    private static final int PICTURE_MODE = 1;
+    private static final int LOGO_MODE = 2;
+    private static final int EMBED_MODE = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -127,6 +137,7 @@ public class MainActivity extends ActionBarActivity {
 
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         qrText = sharedPref.getString(PREF_TEXT_FOR_QR, _(R.string.default_qr_text));
+        mCurrentMode = sharedPref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE);
 
         pickPhoto.setFixedAspectRatio(true);
 
@@ -182,7 +193,7 @@ public class MainActivity extends ActionBarActivity {
 
         shareMenu = menu.findItem(R.id.share_qr);
         saveMenu = menu.findItem(R.id.save_qr);
-
+        galleryMenu = menu.findItem(R.id.launch_gallery);
         revertMenu = menu.findItem(R.id.revert_qr);
 
         hideQrMenu();
@@ -312,6 +323,10 @@ public class MainActivity extends ActionBarActivity {
             openAbout();
         }
 
+        if (id == R.id.select_mode) {
+            showListDialog();
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -383,7 +398,19 @@ public class MainActivity extends ActionBarActivity {
                         gifEncoder.finish();
                     }
                 } else {
-                    mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
+                    switch (mCurrentMode) {
+                        case PICTURE_MODE:
+                            mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
+                            break;
+                        case LOGO_MODE:
+                            mQRBitmap = CuteR.ProductLogo(mCropImage, qrText);
+                            break;
+                        case EMBED_MODE:
+                            break;
+                        default:
+                            break;
+                    }
+
                 }
                 return null;
             }
@@ -404,6 +431,9 @@ public class MainActivity extends ActionBarActivity {
                 mProgressBar.setVisibility(View.INVISIBLE);
                 hideQrMenu();
                 showSaveMenu();
+                if (mCurrentMode == NORMAL_MODE) {
+                    hideRevertMenu();
+                }
                 mConverting = false;
             }
             @Override
@@ -491,17 +521,39 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    public void hideGalleryMenu() {
+        if (galleryMenu != null) {
+            galleryMenu.setVisible(false);
+        }
+    }
+
+    public void showGalleryMenu() {
+        if (galleryMenu != null) {
+            galleryMenu.setVisible(true);
+        }
+    }
+
+    public void hideRevertMenu() {
+        if (revertMenu != null) {
+            revertMenu.setVisible(false);
+        }
+    }
+
+    public void showRevertMenu() {
+        if (revertMenu != null) {
+            revertMenu.setVisible(true);
+        }
+    }
+
     public void hideQrMenu() {
-        if (convertMenu != null && addTextMenu != null) {
+        if (convertMenu != null) {
             convertMenu.setVisible(false);
-            addTextMenu.setVisible(false);
         }
     }
 
     public void showQrMenu() {
-        if (convertMenu != null && addTextMenu != null) {
+        if (convertMenu != null) {
             convertMenu.setVisible(true);
-            addTextMenu.setVisible(true);
         }
     }
 
@@ -613,6 +665,18 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void saveQrText(String txt) {
+        if (qrText == txt) {
+            return;
+        }
+        if (mCurrentMode == NORMAL_MODE) {
+            hideQrMenu();
+            showSaveMenu();
+            hideGalleryMenu();
+            hideRevertMenu();
+            mQRBitmap = CuteR.ProductNormal(qrText);
+            pickPhoto.setImageBitmap(mQRBitmap);
+        }
+
         qrText = txt;
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -693,6 +757,87 @@ public class MainActivity extends ActionBarActivity {
         if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
             Log.v(TAG,"Permission: "+ permissions[0] + "was "+ grantResults[0]);
             launchGallery();
+        }
+    }
+
+    private void showListDialog() {
+        final AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
+        builderSingle.setTitle(R.string.select_mode_title);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                MainActivity.this,
+                android.R.layout.select_dialog_singlechoice);
+        final String[] modes = new String[]{_(R.string.normal_mode), _(R.string.picture_mode), _(R.string.logo_mode), _(R.string.embed_mode)};
+        for (String mode : modes) {
+            arrayAdapter.add(mode);
+        }
+        builderSingle.setSingleChoiceItems(modes, mCurrentMode, null);
+//        builderSingle.setNegativeButton(
+//                "cancel",
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.dismiss();
+//                    }
+//                });
+
+        builderSingle.setAdapter(
+                arrayAdapter,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setCurrentMode(which);
+                        dialog.dismiss();
+//                        String strName = arrayAdapter.getItem(which);
+//                        AlertDialog.Builder builderInner = new AlertDialog.Builder(
+//                                MainActivity.this);
+//                        builderInner.setMessage(strName);
+//                        builderInner.setTitle("Your Selected Item is");
+//                        builderInner.setPositiveButton(
+//                                "Ok",
+//                                new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(
+//                                            DialogInterface dialog,
+//                                            int which) {
+//                                        dialog.dismiss();
+//                                    }
+//                                });
+//                        builderInner.show();
+                    }
+                });
+
+        builderSingle.show();
+    }
+
+    public int getCurrentMode() {
+        return mCurrentMode;
+    }
+
+    public void setCurrentMode(int mode) {
+        if (mCurrentMode == mode) {
+            return;
+        }
+        mCurrentMode = mode;
+
+        final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt(PREF_MODE_FOR_QR, mode);
+        editor.commit();
+
+        switch (mCurrentMode) {
+            case NORMAL_MODE:
+                hideGalleryMenu();
+                hideQrMenu();
+                mQRBitmap = CuteR.ProductNormal(qrText);
+                pickPhoto.setImageBitmap(mQRBitmap);
+                showSaveMenu();
+                hideRevertMenu();
+                break;
+            default:
+                showGalleryMenu();
+                hideQrMenu();
+                break;
         }
     }
 }

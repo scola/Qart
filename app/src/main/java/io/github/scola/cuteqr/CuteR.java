@@ -32,7 +32,15 @@ public class CuteR {
 
     private static int[] patternCenters;
     private static int scaleQR;
-    private static int MAX_INPUT_GIF_SIZE = 480;
+    private static final int MAX_INPUT_GIF_SIZE = 480;
+    private static final int SCALE_NORMAL_QR = 10;
+
+    private static final float FULL_LOGO_QR = 507.1f;
+    private static final float LOGO_BACKGROUND = 140.7f;
+    private static final float LOGO_SIZE = 126.7f;
+
+    private static final int MAX_LOGO_SIZE = 1080;
+
     public static Bitmap Product(String txt, Bitmap input, boolean colorful, int color){
         Log.d(TAG, "Product start input input.getWidth(): " + input.getWidth() + " input.getHeight(): " + input.getHeight());
         Bitmap QRImage = null;
@@ -118,6 +126,68 @@ public class CuteR {
         }
         Log.d(TAG, "Product end input scaledQRImage.getWidth(): " + scaledQRImage.getWidth() + " scaledQRImage.getHeight(): " + scaledQRImage.getHeight());
         return scaledQRImage;
+    }
+
+    public static Bitmap ProductNormal(String txt) {
+        Bitmap QRImage = null;
+        try {
+            QRImage = encodeAsBitmap(txt);
+        } catch (WriterException e) {
+            Log.e(TAG, "encodeAsBitmap: " + e);
+        }
+        return Bitmap.createScaledBitmap(QRImage, QRImage.getWidth() * SCALE_NORMAL_QR, QRImage.getHeight() * SCALE_NORMAL_QR, false);
+    }
+
+    public static Bitmap ProductLogo(Bitmap logo, String txt) {
+        Bitmap qrImage = ProductNormal(txt);
+        int fullSize = qrImage.getWidth() - 4 * 2 * SCALE_NORMAL_QR;
+        int finalSize = (int) (logo.getWidth() * FULL_LOGO_QR / LOGO_SIZE);
+        finalSize = Math.min(finalSize, MAX_LOGO_SIZE);
+        int scale = SCALE_NORMAL_QR;
+
+        if (finalSize > fullSize) {
+            scale = SCALE_NORMAL_QR * finalSize/fullSize;
+            qrImage = Bitmap.createScaledBitmap(qrImage, qrImage.getWidth()*finalSize/fullSize, qrImage.getHeight()*finalSize/fullSize, false);
+            fullSize = finalSize;
+        }
+        int background = (int) (fullSize * LOGO_BACKGROUND / FULL_LOGO_QR);
+        int logoSize = (int) (fullSize * LOGO_SIZE / FULL_LOGO_QR);
+
+        Bitmap white =  Bitmap.createBitmap(background, background, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(white);
+        canvas.drawColor(Color.WHITE);
+        white = fillBoundary(white);
+
+        Bitmap scaleLogo = Bitmap.createScaledBitmap(logo, logoSize, logoSize, false);
+
+        Canvas canvasQR = new Canvas(qrImage);
+        canvasQR.drawBitmap(white, scale * 4 + (fullSize - background)/2, scale * 4 + (fullSize - background)/2, null);
+        canvasQR.drawBitmap(scaleLogo, scale * 4 + (fullSize - logoSize)/2, scale * 4 + (fullSize - logoSize)/2, null);
+        return qrImage;
+    }
+
+    private static Bitmap fillBoundary(Bitmap white) {
+        int boundary = white.getWidth() * 5 / 200;
+        int size = white.getWidth();
+        int center = size / 2;
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i < boundary || i > size - (boundary + 1) || j < boundary || j > size - (boundary + 1)) {
+                    white.setPixel(i, j, Color.LTGRAY);
+                }
+
+                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center - boundary, 2) * 2) - boundary) {
+                    white.setPixel(i, j, Color.LTGRAY);
+                }
+
+                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center, 2) * 2) - boundary) {
+                    white.setPixel(i, j, Color.TRANSPARENT);
+                }
+            }
+        }
+        return  white;
     }
 
     public static Bitmap[] ProductGIF(String txt, Bitmap[] input, boolean colorful, int color) {
