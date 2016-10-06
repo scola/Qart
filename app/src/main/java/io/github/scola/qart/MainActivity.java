@@ -489,10 +489,12 @@ public class MainActivity extends ActionBarActivity {
                     mPickImage = true;
                     pickPhoto.setShowSelectFrame(true);
                     try {
-                        String path = getRealPathFromURI(this, data.getData());
-                        if (path.toLowerCase().endsWith(".gif")) {
+//                        String path = getRealPathFromURI(this, data.getData());
+                        String mimeType = getContentResolver().getType(data.getData());
+                        Log.d(TAG, "mime type: " + mimeType);
+                        if (mimeType.equals("image/gif")) {
                             mGif = true;
-                            mGifDrawable = new GifDrawable(path);
+                            mGifDrawable = new GifDrawable(getContentResolver(), data.getData());
                             pickPhoto.setImageDrawable(mGifDrawable);
                             mOriginBitmap = mGifDrawable.seekToFrameAndGet(0);
 

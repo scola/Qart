@@ -131,7 +131,7 @@ public class CuteR {
     public static Bitmap ProductEmbed(String txt, Bitmap input, boolean colorful, int color, int x, int y, Bitmap originBitmap){
         int originalSize = input.getWidth();
         Bitmap qrBitmap = Product(txt, input, colorful, color);
-        double newScale = 1.0 * qrBitmap.getWidth() * scaleQR / (qrBitmap.getWidth() - 2 * 4 * scaleQR);
+        double newScale = 1.0 * originalSize * scaleQR / (qrBitmap.getWidth() - 2 * 4 * scaleQR);
         int targetSize = qrBitmap.getWidth() * originalSize / (qrBitmap.getWidth() - 2 * 4 * scaleQR);
         qrBitmap = resizeQuiteZone(qrBitmap, newScale); //it does not match QR spec to cut the qr quiet zone
         qrBitmap = Bitmap.createScaledBitmap(qrBitmap, targetSize, targetSize, false);
