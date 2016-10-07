@@ -100,9 +100,7 @@ public class CuteR {
 
         Bitmap blackWhite = resizedImage;
         if (colorful == false) {
-            blackWhite = createContrast(blackWhite, 50, 30);
-            blackWhite = ConvertToBlackAndWhite(blackWhite);
-            blackWhite = convertGreyImgByFloyd2(blackWhite);
+            blackWhite = convertBlackWhiteFull(blackWhite);
         }
 
         for (int i = 0; i < imageSize; i++) {
@@ -126,6 +124,13 @@ public class CuteR {
         }
         Log.d(TAG, "Product end input scaledQRImage.getWidth(): " + scaledQRImage.getWidth() + " scaledQRImage.getHeight(): " + scaledQRImage.getHeight());
         return scaledQRImage;
+    }
+
+    public static Bitmap convertBlackWhiteFull(Bitmap blackWhite) {
+        blackWhite = createContrast(blackWhite, 50, 30);
+        blackWhite = ConvertToBlackAndWhite(blackWhite);
+        blackWhite = convertGreyImgByFloyd2(blackWhite);
+        return blackWhite;
     }
 
     public static Bitmap ProductEmbed(String txt, Bitmap input, boolean colorful, int color, int x, int y, Bitmap originBitmap){
@@ -208,11 +213,11 @@ public class CuteR {
                     white.setPixel(i, j, Color.LTGRAY);
                 }
 
-                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center - boundary, 2) * 2) - boundary) {
+                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center - boundary, 2) * 2) - boundary/2) {
                     white.setPixel(i, j, Color.LTGRAY);
                 }
 
-                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center, 2) * 2) - boundary) {
+                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center, 2) * 2) - boundary/2) {
                     white.setPixel(i, j, Color.TRANSPARENT);
                 }
             }
@@ -222,33 +227,46 @@ public class CuteR {
 
     public static Bitmap[] ProductGIF(String txt, Bitmap[] input, boolean colorful, int color) {
         Log.d(TAG, "ProductGIF start");
-        int maxSize = Math.min(MAX_INPUT_GIF_SIZE, input[0].getWidth());
-//        if (scale < 1) {
-//            for (int i = 0; i < input.length; i++) {
-//                input[i] = getResizedBitmap(input[i], scale, scale);
-//            }
-//        }
-        Bitmap white =  Bitmap.createBitmap(maxSize, maxSize, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(white);
-        canvas.drawColor(Color.WHITE);
-        Bitmap whiteQR = Product(txt, white, colorful, color);
-
-        Bitmap[] output = new Bitmap[input.length];
+        int size = input[0].getWidth();
         int i = 0;
-        double scale = 3.0/4;
-        int resizedImageSize = (whiteQR.getWidth() - scaleQR  * 4 * 2);
-
-        for (Bitmap inputBitmap : input) {
-            Bitmap resizeImage = Bitmap.createScaledBitmap(inputBitmap, (int)(resizedImageSize*scale), (int)(resizedImageSize*scale), false);
-            Bitmap finalImage =  Bitmap.createBitmap(whiteQR.getWidth(), whiteQR.getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas canvasQR = new Canvas(finalImage);
-            canvasQR.drawColor(Color.WHITE);
-            canvasQR.drawBitmap(resizeImage, scaleQR * 4 + (resizedImageSize - (int)(resizedImageSize*scale))/2, scaleQR * 4 + (resizedImageSize - (int)(resizedImageSize*scale))/2, null);
-            finalImage = replaceQR(whiteQR, finalImage);
-            output[i] = finalImage;
+        Bitmap[] output = new Bitmap[input.length];
+        for (Bitmap inputBitmap : input){
+            if (size > MAX_INPUT_GIF_SIZE) {
+                inputBitmap = Bitmap.createScaledBitmap(inputBitmap, MAX_INPUT_GIF_SIZE, MAX_INPUT_GIF_SIZE, false);
+            }
+            output[i] = Product(txt, inputBitmap, colorful, color);
             i++;
         }
-        Log.d(TAG, "ProductGIF end");
+//        int maxSize = Math.min(MAX_INPUT_GIF_SIZE, input[0].getWidth());
+////        if (scale < 1) {
+////            for (int i = 0; i < input.length; i++) {
+////                input[i] = getResizedBitmap(input[i], scale, scale);
+////            }
+////        }
+//        Bitmap white =  Bitmap.createBitmap(maxSize, maxSize, Bitmap.Config.ARGB_8888);
+//        Canvas canvas = new Canvas(white);
+//        canvas.drawColor(Color.WHITE);
+//        Bitmap whiteQR = Product(txt, white, colorful, color);
+//
+//        Bitmap[] output = new Bitmap[input.length];
+//        int i = 0;
+//        double scale = colorful ? 3.0/4 : 1;
+//        int resizedImageSize = (whiteQR.getWidth() - scaleQR  * 4 * 2);
+//
+//        for (Bitmap inputBitmap : input) {
+//            if (!colorful) {
+//                inputBitmap = convertBlackWhiteFull(inputBitmap);
+//            }
+//            Bitmap resizeImage = Bitmap.createScaledBitmap(inputBitmap, (int)(resizedImageSize*scale), (int)(resizedImageSize*scale), false);
+//            Bitmap finalImage =  Bitmap.createBitmap(whiteQR.getWidth(), whiteQR.getHeight(), Bitmap.Config.ARGB_8888);
+//            Canvas canvasQR = new Canvas(finalImage);
+//            canvasQR.drawColor(Color.WHITE);
+//            canvasQR.drawBitmap(resizeImage, scaleQR * 4 + (resizedImageSize - (int)(resizedImageSize*scale))/2, scaleQR * 4 + (resizedImageSize - (int)(resizedImageSize*scale))/2, null);
+//            finalImage = replaceQR(whiteQR, finalImage);
+//            output[i] = finalImage;
+//            i++;
+//        }
+//        Log.d(TAG, "ProductGIF end");
         return output;
     }
 

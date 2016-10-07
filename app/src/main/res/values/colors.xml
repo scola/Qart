@@ -9,4 +9,5 @@
     <color name="reply_button_text_disable">#b8b8b8</color>
     <color name="white">#FFFFFF</color>
     <color name="text_primary">#df000000</color>
+    <color name="guide_bg">#263238</color>
 </resources>

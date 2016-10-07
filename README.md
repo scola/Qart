@@ -15,6 +15,7 @@ Opensource library
  * [colorpicker](https://github.com/QuadFlask/colorpicker)
  * [android-gif-drawable](https://github.com/koral--/android-gif-drawable)
  * [android-gif-encoder](https://github.com/nbadal/android-gif-encoder)
+ * [AndroidOnboarder](https://github.com/chyrta/AndroidOnboarder)
  
 Screenshot
 ------------------

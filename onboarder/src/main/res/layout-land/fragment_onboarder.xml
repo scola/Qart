@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_margin">
+
+
+    <ImageView
+        android:id="@+id/iv_onboarder_image"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/section_image_item"
+        android:adjustViewBounds="true"
+        android:alpha="1.0"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"/>
+
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_weight="1"
+        android:padding="@dimen/activity_margin">
+
+        <TextView
+            android:id="@+id/tv_onboarder_title"
+            style="@style/TextAppearance.AppCompat.Headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            tools:text="Section First"/>
+
+        <TextView
+            android:id="@+id/tv_onboarder_description"
+            style="@style/TextAppearance.AppCompat.Body1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_margin"
+            android:alpha="0.7"
+            android:gravity="center"
+            android:textColor="@color/white"
+            tools:text="A long description about my application"/>
+
+    </LinearLayout>
+
+</LinearLayout>

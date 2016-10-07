@@ -35,5 +35,11 @@
     <string name="picture_mode">Picture</string>
     <string name="logo_mode">Logo</string>
     <string name="embed_mode">Embed</string>
+    <string name="change_color">Change color</string>
+    <string name="gif">GIF</string>
+    <string name="embed_title">EMBED</string>
+    <string name="logo_title">LOGO</string>
+    <string name="guide_start">START</string>
+    <string name="gif_picture_only">Only picture mode support GIF</string>
 
 </resources>

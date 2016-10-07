@@ -264,7 +264,7 @@ public class CropImageView extends ImageView {
         // Implementation reference: http://stackoverflow.com/a/26930938/1068656
 
         final Drawable drawable = getDrawable();
-        if (drawable == null || !(drawable instanceof BitmapDrawable)) {
+        if (drawable == null) {
             return null;
         }
 
@@ -306,6 +306,10 @@ public class CropImageView extends ImageView {
 
     public Bitmap getCroppedImage(final Bitmap originalBitmap) {
         CropPosSize cropSize = getCroppedSize(originalBitmap);
+        return getCroppedImage(originalBitmap, cropSize);
+    }
+
+    public Bitmap getCroppedImage(final Bitmap originalBitmap, CropPosSize cropSize) {
 
         // Crop the subset from the original Bitmap.
         return Bitmap.createBitmap(originalBitmap,

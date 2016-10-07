@@ -70,6 +70,7 @@ public class MainActivity extends ActionBarActivity {
     private final static int REQUEST_PICK_IMAGE = 1;
     private final static String PREF_TEXT_FOR_QR = "text";
     private final static String PREF_MODE_FOR_QR = "mode";
+    public final static String PREF_GUIDE_VERSION = "version";
 
     private final static int MAX_INPUT_BITMAP_WIDTH = 720;
     private final static int MAX_INPUT_BITMAP_HEIGHT= 1280;
@@ -87,6 +88,7 @@ public class MainActivity extends ActionBarActivity {
     private MenuItem saveMenu;
     private MenuItem revertMenu;
     private MenuItem galleryMenu;
+    private MenuItem colorMenu;
 
     private LinearLayout editTextView;
 
@@ -122,6 +124,9 @@ public class MainActivity extends ActionBarActivity {
     private CropImageView.CropPosSize mCropSize;
     private boolean mPickImage;
 
+    private int mColor = Color.rgb(0x28, 0x32, 0x60);
+    private int[] modeGuide = {R.drawable.guide_img, R.drawable.guide_img_logo, R.drawable.guide_img_embed};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -141,10 +146,11 @@ public class MainActivity extends ActionBarActivity {
 
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         qrText = sharedPref.getString(PREF_TEXT_FOR_QR, _(R.string.default_qr_text));
-        mCurrentMode = sharedPref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE);
 
         pickPhoto.setFixedAspectRatio(true);
-        mOriginBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.guide_img);
+        if (mCurrentMode > 0) {
+            mOriginBitmap = BitmapFactory.decodeResource(getResources(), modeGuide[mCurrentMode - 1]);
+        }
 
         setTextButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,6 +174,18 @@ public class MainActivity extends ActionBarActivity {
                 new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        final SharedPreferences sharedPref = getSharedPreferences(PREF_GUIDE_VERSION, Context.MODE_PRIVATE);
+        String version = sharedPref.getString(PREF_GUIDE_VERSION, "");
+        if (!version.equals(getMyVersion(this))) {
+            Intent i = new Intent(this, IntroActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
+        }
     }
 
     @Override
@@ -200,9 +218,15 @@ public class MainActivity extends ActionBarActivity {
         saveMenu = menu.findItem(R.id.save_qr);
         galleryMenu = menu.findItem(R.id.launch_gallery);
         revertMenu = menu.findItem(R.id.revert_qr);
+        colorMenu = menu.findItem(R.id.change_color);
 
         hideQrMenu();
         hideSaveMenu();
+
+        final SharedPreferences modePref = getPreferences(Context.MODE_PRIVATE);
+        int mode = modePref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE);
+        setCurrentMode(mode);
+
         return true;
     }
 
@@ -241,27 +265,23 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
 
-            if (mGif) {
-                chooseColor();
-            } else {
-                new AlertDialog.Builder(this)
-                    .setTitle(_(R.string.color_or_black))
-                    .setMessage(_(R.string.colorful_msg))
-                    .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                            chooseColor();
-                        }
-                    })
-                    .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                            startConvert(false, Color.BLACK);
-                        }
-                    })
-                    .create()
-                    .show();
-            }
+            new AlertDialog.Builder(this)
+                .setTitle(_(R.string.color_or_black))
+                .setMessage(_(R.string.colorful_msg))
+                .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                        chooseColor();
+                    }
+                })
+                .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                        startConvert(false, Color.BLACK);
+                    }
+                })
+                .create()
+                .show();
 
         }
 
@@ -325,6 +345,10 @@ public class MainActivity extends ActionBarActivity {
             showListDialog();
         }
 
+        if (id == R.id.change_color) {
+            chooseColor();
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -335,6 +359,8 @@ public class MainActivity extends ActionBarActivity {
         } else {
             pickPhoto.setImageBitmap(mOriginBitmap);
         }
+        mCropSize = null;
+        mCropImage = null;
 
         hideSaveMenu();
         if (showFrame) {
@@ -350,7 +376,7 @@ public class MainActivity extends ActionBarActivity {
                 .with(MainActivity.this)
                 .setTitle(R.string.choose_color)
                 .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
-                .initialColor(Color.rgb(0x28, 0x32, 0x60))  //default blue
+                .initialColor(mColor)  //default blue
                 .density(12)
                 .lightnessSliderOnly()
                 .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
@@ -361,6 +387,7 @@ public class MainActivity extends ActionBarActivity {
                         } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD){
                             Toast.makeText(MainActivity.this, R.string.select_light, Toast.LENGTH_LONG).show();
                         }
+                        mColor = selectedColor;
                         startConvert(true, selectedColor);
                     }
                 })
@@ -383,6 +410,12 @@ public class MainActivity extends ActionBarActivity {
 
     private void startConvert(final boolean colorful, final int color) {
         mConverting = true;
+        if (mCurrentMode == NORMAL_MODE) {
+            mQRBitmap = CuteR.ProductNormal(qrText, colorful, color);
+            pickPhoto.setImageBitmap(mQRBitmap);
+            mConverting = false;
+            return;
+        }
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground( Void... voids ) {
@@ -458,17 +491,18 @@ public class MainActivity extends ActionBarActivity {
                 super.onPreExecute();
                 mProgressBar.setVisibility(View.VISIBLE);
                 if (mGif) {
-                    pickPhoto.setImageBitmap(mOriginBitmap);
+//                    pickPhoto.setImageBitmap(mOriginBitmap);
+                    mCropSize = mCropSize == null ? pickPhoto.getCroppedSize(mOriginBitmap) : mCropSize;
                     gifArray = new Bitmap[mGifDrawable.getNumberOfFrames()];
                     for (int i = 0; i < gifArray.length; i++) {
-                        gifArray[i] = pickPhoto.getCroppedImage(mGifDrawable.seekToFrameAndGet(i));
+                        gifArray[i] = pickPhoto.getCroppedImage(mGifDrawable.seekToFrameAndGet(i), mCropSize);
                     }
                 } else {
-                    mCropImage = pickPhoto.getCroppedImage(mOriginBitmap);
+                    mCropImage = mCropImage == null ? pickPhoto.getCroppedImage(mOriginBitmap) : mCropImage;
                 }
 
                 if (mCurrentMode == EMBED_MODE) {
-                    mCropSize = pickPhoto.getCroppedSize(mOriginBitmap);
+                    mCropSize = mCropSize == null ? pickPhoto.getCroppedSize(mOriginBitmap) : mCropSize;
                 }
 
             }
@@ -487,12 +521,18 @@ public class MainActivity extends ActionBarActivity {
                     }
 
                     mPickImage = true;
+                    mCropSize = null;
+                    mCropImage = null;
                     pickPhoto.setShowSelectFrame(true);
                     try {
 //                        String path = getRealPathFromURI(this, data.getData());
                         String mimeType = getContentResolver().getType(data.getData());
                         Log.d(TAG, "mime type: " + mimeType);
                         if (mimeType.equals("image/gif")) {
+                            if (mCurrentMode != PICTURE_MODE) {
+                                Toast.makeText(this, _(R.string.gif_picture_only), Toast.LENGTH_LONG).show();
+                                return;
+                            }
                             mGif = true;
                             mGifDrawable = new GifDrawable(getContentResolver(), data.getData());
                             pickPhoto.setImageDrawable(mGifDrawable);
@@ -587,6 +627,10 @@ public class MainActivity extends ActionBarActivity {
             saveMenu.setVisible(false);
             revertMenu.setVisible(false);
         }
+
+        if (colorMenu != null) {
+            colorMenu.setVisible(false);
+        }
     }
 
     public void showSaveMenu() {
@@ -594,6 +638,10 @@ public class MainActivity extends ActionBarActivity {
             shareMenu.setVisible(true);
             saveMenu.setVisible(true);
             revertMenu.setVisible(true);
+        }
+
+        if (colorMenu != null) {
+            colorMenu.setVisible(true);
         }
     }
 
@@ -860,6 +908,18 @@ public class MainActivity extends ActionBarActivity {
                 break;
             default:
                 showGalleryMenu();
+                if (mPickImage) {
+                    if (mGif && mCurrentMode != PICTURE_MODE) {
+                        mPickImage = false;
+                        mGif = false;
+                        if (mGifDrawable != null) {
+                            mGifDrawable.recycle();
+                        }
+                        mOriginBitmap = BitmapFactory.decodeResource(getResources(), modeGuide[mCurrentMode - 1]);
+                    }
+                } else {
+                    mOriginBitmap = BitmapFactory.decodeResource(getResources(), modeGuide[mCurrentMode - 1]);
+                }
                 revertQR(mPickImage);
                 break;
         }

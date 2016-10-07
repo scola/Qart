@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Android Onboarder</string>
+    <string name="button.finish">Finish</string>
+    <string name="button.next">Next</string>
+    <string name="button.skip">Skip</string>
+</resources>

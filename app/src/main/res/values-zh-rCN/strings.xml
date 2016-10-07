@@ -34,5 +34,11 @@
     <string name="picture_mode">图片</string>
     <string name="logo_mode">图标</string>
     <string name="embed_mode">嵌入</string>
+    <string name="change_color">换色</string>
+    <string name="gif">动图</string>
+    <string name="embed_title">嵌入</string>
+    <string name="logo_title">图标</string>
+    <string name="guide_start">开始</string>
+    <string name="gif_picture_only">只有图标模式支持 GIF</string>
 
 </resources>

@@ -31,7 +31,7 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-annotations:23.1.0'
+    compile 'com.android.support:support-annotations:23.3.0'
     compile 'junit:junit:4.12'
 }
 
