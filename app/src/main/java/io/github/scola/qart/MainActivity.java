@@ -49,6 +49,12 @@ import com.edmodo.cropper.CropImageView;
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerClickListener;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -68,6 +74,10 @@ import pl.droidsonroids.gif.GifDrawable;
 public class MainActivity extends ActionBarActivity {
     private final static String TAG = "MainActivity";
     private final static int REQUEST_PICK_IMAGE = 1;
+    private final static int REQUEST_SEND_QR_TEXT = 2;
+    private final static int REQUEST_PICK_QR_IMAGE = 3;
+    private final static int REQUEST_DETECT_QR_IMAGE = 4;
+
     private final static String PREF_TEXT_FOR_QR = "text";
     private final static String PREF_MODE_FOR_QR = "mode";
     public final static String PREF_GUIDE_VERSION = "version";
@@ -114,7 +124,7 @@ public class MainActivity extends ActionBarActivity {
     private Bitmap[] gifArray;
     private Bitmap[] QRGifArray;
 
-    private int mCurrentMode;
+    private int mCurrentMode = -1;
 
     private static final int NORMAL_MODE = 0;
     private static final int PICTURE_MODE = 1;
@@ -123,9 +133,10 @@ public class MainActivity extends ActionBarActivity {
 
     private CropImageView.CropPosSize mCropSize;
     private boolean mPickImage;
+    private boolean mScan;
 
     private int mColor = Color.rgb(0x28, 0x32, 0x60);
-    private int[] modeGuide = {R.drawable.guide_img, R.drawable.guide_img_logo, R.drawable.guide_img_embed};
+    final private int[] modeGuide = {R.drawable.guide_img, R.drawable.guide_img_logo, R.drawable.guide_img_embed};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,9 +159,6 @@ public class MainActivity extends ActionBarActivity {
         qrText = sharedPref.getString(PREF_TEXT_FOR_QR, _(R.string.default_qr_text));
 
         pickPhoto.setFixedAspectRatio(true);
-        if (mCurrentMode > 0) {
-            mOriginBitmap = BitmapFactory.decodeResource(getResources(), modeGuide[mCurrentMode - 1]);
-        }
 
         setTextButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,7 +179,28 @@ public class MainActivity extends ActionBarActivity {
         qrButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
-                new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
+                String[] items = getResources().getStringArray(R.array.read_scan_qr);
+
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainActivity.this);
+                builder.setTitle(R.string.scan_or_read);
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        switch (i) {
+                            case 0:
+                                mScan = false;
+                                new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
+                                break;
+                            case 1:
+                                pickImage(REQUEST_PICK_QR_IMAGE);
+                                break;
+                            default:
+                                break;
+                        }
+                        dialogInterface.dismiss();
+                    }
+                });
+                builder.show();
             }
         });
     }
@@ -183,7 +212,6 @@ public class MainActivity extends ActionBarActivity {
         String version = sharedPref.getString(PREF_GUIDE_VERSION, "");
         if (!version.equals(getMyVersion(this))) {
             Intent i = new Intent(this, IntroActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
         }
     }
@@ -238,16 +266,15 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         if (id == R.id.launch_gallery) {
+            pickImage(REQUEST_PICK_IMAGE);
+        }
+
+        if (id == R.id.add_txt) {
             if (mConverting) {
                 Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
                 return true;
             }
-            if (isStoragePermissionGranted()) {
-                launchGallery();
-            }
-        }
 
-        if (id == R.id.add_txt) {
             if (editTextView.getVisibility() == View.INVISIBLE) {
                 editTextView.setVisibility(View.VISIBLE);
                 if (qrText != null && qrText.isEmpty() == false) {
@@ -349,6 +376,15 @@ public class MainActivity extends ActionBarActivity {
             chooseColor();
         }
 
+        if (id == R.id.scan_qr) {
+            mScan = true;
+            new IntentIntegrator(this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
+        }
+
+        if (id == R.id.detect_qr) {
+            pickImage(REQUEST_DETECT_QR_IMAGE);
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -402,10 +438,20 @@ public class MainActivity extends ActionBarActivity {
                 .show();
     }
 
-    private void launchGallery() {
+    private void pickImage(int request) {
+        if (mConverting) {
+            Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isStoragePermissionGranted(request)) {
+            launchGallery(request);
+        }
+    }
+
+    private void launchGallery(int request) {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, REQUEST_PICK_IMAGE);
+        startActivityForResult(photoPickerIntent, request);
     }
 
     private void startConvert(final boolean colorful, final int color) {
@@ -509,6 +555,64 @@ public class MainActivity extends ActionBarActivity {
         }.execute();
     }
 
+    private void startDecode(final Bitmap bitmap, final int requestCode) {
+        Log.d(TAG, "startDecode");
+        new AsyncTask<Void, Void, Result>() {
+            @Override
+            protected Result doInBackground(Void... voids ) {
+//                Bitmap blackWhite = CuteR.createContrast(bitmap, 50, 0);
+                Bitmap blackWhite = CuteR.ConvertToBlackAndWhite(bitmap);
+                int width = blackWhite.getWidth(), height = blackWhite.getHeight();
+                int[] pixels = new int[width * height];
+                blackWhite.getPixels(pixels, 0, width, 0, 0, width, height);
+                RGBLuminanceSource source = new RGBLuminanceSource(width, height, pixels);
+                BinaryBitmap bBitmap = new BinaryBitmap(new HybridBinarizer(source));
+                MultiFormatReader reader = new MultiFormatReader();
+                try
+                {
+                    Result result = reader.decode(bBitmap);
+                    return result;
+                }
+                catch (NotFoundException e)
+                {
+                    Log.e(TAG, "decode exception", e);
+                    return null;
+                }
+
+            }
+            @Override
+            protected void onPostExecute(Result post) {
+                super.onPostExecute(post);
+                if (post != null && post.getText().trim().isEmpty() == false) {
+                    Log.d(TAG, "decode pic qr: " + post.getText());
+                    switch (requestCode) {
+                        case REQUEST_PICK_QR_IMAGE:
+                            mEditTextView.setText(post.getText().trim());
+                            break;
+                        case REQUEST_DETECT_QR_IMAGE:
+                            launchQRResultActivity(post.getText().trim());
+                            break;
+                        default:
+                            break;
+                    }
+
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.cannot_detect_qr, Toast.LENGTH_LONG).show();
+                }
+            }
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+        }.execute();
+    }
+
+    private void launchQRResultActivity(String qr) {
+        Intent i = new Intent(MainActivity.this, QRCodeResultActivity.class);
+        i.putExtra("TEXT", qr);
+        startActivityForResult(i, REQUEST_SEND_QR_TEXT);
+    }
+
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         switch (requestCode) {
@@ -528,7 +632,7 @@ public class MainActivity extends ActionBarActivity {
 //                        String path = getRealPathFromURI(this, data.getData());
                         String mimeType = getContentResolver().getType(data.getData());
                         Log.d(TAG, "mime type: " + mimeType);
-                        if (mimeType.equals("image/gif")) {
+                        if (mimeType != null && mimeType.equals("image/gif")) {
                             if (mCurrentMode != PICTURE_MODE) {
                                 Toast.makeText(this, _(R.string.gif_picture_only), Toast.LENGTH_LONG).show();
                                 return;
@@ -568,6 +672,45 @@ public class MainActivity extends ActionBarActivity {
                     showQrMenu();
                 }
                 break;
+            case REQUEST_SEND_QR_TEXT:
+                if (resultCode == RESULT_OK) {
+                    if(data.hasExtra("import")) {
+                        Log.d(TAG, "REQUEST_SEND_QR_TEXT");
+                        final String text = data.getExtras().getString("import");
+                        mEditTextView.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                editTextView.setVisibility(View.VISIBLE);
+                                mEditTextView.setText(text);
+                                mEditTextView.setSelection(text.length());
+                            }
+                        }, 200);
+
+                    }
+                }
+                break;
+            case REQUEST_PICK_QR_IMAGE:
+            case REQUEST_DETECT_QR_IMAGE:
+                if (resultCode == RESULT_OK) {
+                    String mimeType = getContentResolver().getType(data.getData());
+                    Log.d(TAG, "mime type: " + mimeType);
+                    Bitmap qrImage = null;
+                    if (mimeType != null && mimeType.equals("image/gif")) {
+                        try {
+                            GifDrawable gifDrawable = new GifDrawable(getContentResolver(), data.getData());
+                            if (gifDrawable != null) {
+                                qrImage = gifDrawable.seekToFrameAndGet(0);
+                                gifDrawable.recycle();
+                            }
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    } else {
+                        qrImage = getBitmapFromUri(data.getData());
+                    }
+                    startDecode(qrImage, requestCode);
+                }
+                break;
 
             default:
                 IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
@@ -576,7 +719,11 @@ public class MainActivity extends ActionBarActivity {
                         Toast.makeText(this, _(R.string.cancel_scan), Toast.LENGTH_LONG).show();
                     } else {
 //                        Toast.makeText(this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
-                        mEditTextView.setText(result.getContents());
+                        if (mScan) {
+                            launchQRResultActivity(result.getContents());
+                        } else {
+                            mEditTextView.setText(result.getContents());
+                        }
                     }
                 } else {
                     super.onActivityResult(requestCode, resultCode, data);
@@ -740,16 +887,12 @@ public class MainActivity extends ActionBarActivity {
         if (qrText == txt) {
             return;
         }
+        qrText = txt;
         if (mCurrentMode == NORMAL_MODE) {
-            hideQrMenu();
-            showSaveMenu();
-            hideGalleryMenu();
-            hideRevertMenu();
-            mQRBitmap = CuteR.ProductNormal(qrText, false, Color.BLACK);
+            mQRBitmap = CuteR.ProductNormal(txt, false, Color.BLACK);
             pickPhoto.setImageBitmap(mQRBitmap);
         }
 
-        qrText = txt;
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(PREF_TEXT_FOR_QR, qrText);
@@ -805,7 +948,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public  boolean isStoragePermissionGranted() {
+    public  boolean isStoragePermissionGranted(int request) {
         if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -813,7 +956,7 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             } else {
                 Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, request);
                 return false;
             }
         }
@@ -828,7 +971,7 @@ public class MainActivity extends ActionBarActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
             Log.v(TAG,"Permission: "+ permissions[0] + "was "+ grantResults[0]);
-            launchGallery();
+            launchGallery(requestCode);
         }
     }
 
@@ -860,22 +1003,6 @@ public class MainActivity extends ActionBarActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         setCurrentMode(which);
                         dialog.dismiss();
-//                        String strName = arrayAdapter.getItem(which);
-//                        AlertDialog.Builder builderInner = new AlertDialog.Builder(
-//                                MainActivity.this);
-//                        builderInner.setMessage(strName);
-//                        builderInner.setTitle("Your Selected Item is");
-//                        builderInner.setPositiveButton(
-//                                "Ok",
-//                                new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(
-//                                            DialogInterface dialog,
-//                                            int which) {
-//                                        dialog.dismiss();
-//                                    }
-//                                });
-//                        builderInner.show();
                     }
                 });
 
@@ -903,6 +1030,7 @@ public class MainActivity extends ActionBarActivity {
                 hideQrMenu();
                 mQRBitmap = CuteR.ProductNormal(qrText, false, Color.BLACK);
                 pickPhoto.setImageBitmap(mQRBitmap);
+                pickPhoto.setShowSelectFrame(false);
                 showSaveMenu();
                 hideRevertMenu();
                 break;

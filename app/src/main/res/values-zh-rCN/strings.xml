@@ -40,5 +40,17 @@
     <string name="logo_title">图标</string>
     <string name="guide_start">开始</string>
     <string name="gif_picture_only">只有图标模式支持 GIF</string>
+    <string name="qr_result">扫描识别结果</string>
+    <string name="open">打开</string>
+    <string name="copy">复制</string>
+    <string name="import_text">导入</string>
+    <string name="qr_copied">文本已复制</string>
+    <string name="no_activity">找不到应用程序打开此文本</string>
+    <string name="scan">扫描</string>
+    <string name="scan_qr">扫描</string>
+    <string name="read_qr">读取</string>
+    <string name="cannot_detect_qr">不能从图片中提取二维码</string>
+    <string name="scan_or_read">扫描或读取二维码</string>
+    <string name="detect">识别</string>
 
 </resources>

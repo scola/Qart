@@ -35,11 +35,23 @@
     <string name="picture_mode">Picture</string>
     <string name="logo_mode">Logo</string>
     <string name="embed_mode">Embed</string>
-    <string name="change_color">Change color</string>
+    <string name="change_color">Color</string>
     <string name="gif">GIF</string>
     <string name="embed_title">EMBED</string>
     <string name="logo_title">LOGO</string>
     <string name="guide_start">START</string>
     <string name="gif_picture_only">Only picture mode support GIF</string>
+    <string name="qr_result">QR Result</string>
+    <string name="open">Open</string>
+    <string name="copy">Copy</string>
+    <string name="import_text">Import</string>
+    <string name="qr_copied">QR text has been copied</string>
+    <string name="no_activity">Can not find activity to open</string>
+    <string name="scan">Scan</string>
+    <string name="scan_qr">Scan QR Code</string>
+    <string name="read_qr">Read QR Image</string>
+    <string name="cannot_detect_qr">Can not decode image</string>
+    <string name="scan_or_read">Scan or read QR code</string>
+    <string name="detect">Detect</string>
 
 </resources>

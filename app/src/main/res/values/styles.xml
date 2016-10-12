@@ -8,8 +8,8 @@
 
     <!--<style name="MyActionBar" parent="Widget.AppCompat.Light.ActionBar">-->
 
-        <!--<item name="android:displayOptions" tools:targetApi="11">useLogo|showHome</item>-->
-        <!--<item name="displayOptions">useLogo|showHome</item>-->
+    <!--<item name="android:displayOptions" tools:targetApi="11">useLogo|showHome</item>-->
+    <!--<item name="displayOptions">useLogo|showHome</item>-->
     <!--</style>-->
     <style name="OverflowMenu" parent="Widget.AppCompat.PopupMenu.Overflow">
         <!-- Required for pre-Lollipop. -->
@@ -19,8 +19,16 @@
         <item name="android:overlapAnchor" tools:targetApi="21">false</item>
     </style>
 
-    <style name="ProgressBar.Horizontal" parent="@android:style/Widget.Holo.ProgressBar.Horizontal">
+    <style name="ProgressBar.Horizontal" parent="@android:style/Widget.Holo.ProgressBar.Horizontal"></style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <!--<item name="android:background">@color/background_color</item>-->
     <!--<item name="background">@color/background_color</item>-->

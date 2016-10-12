@@ -5,5 +5,6 @@
 
     <dimen name="content_padding">4dp</dimen>
     <dimen name="content_padding_half">2dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 
 </resources>

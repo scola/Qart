@@ -188,37 +188,50 @@ public class CuteR {
         int background = (int) (fullSize * LOGO_BACKGROUND / FULL_LOGO_QR);
         int logoSize = (int) (fullSize * LOGO_SIZE / FULL_LOGO_QR);
 
-        Bitmap white =  Bitmap.createBitmap(background, background, Bitmap.Config.ARGB_8888);
+        Bitmap gray =  Bitmap.createBitmap(background, background, Bitmap.Config.ARGB_8888);
+        int boundary = gray.getWidth() * 5 / 200;
 
-        Canvas canvas = new Canvas(white);
-        canvas.drawColor(Color.WHITE);
-        white = fillBoundary(white);
+        Canvas canvas = new Canvas(gray);
+        canvas.drawColor(Color.LTGRAY);
+        gray = fillBoundary(gray, boundary);
+
+        Bitmap white =  Bitmap.createBitmap(background - boundary * 2, background - boundary * 2, Bitmap.Config.ARGB_8888);
+        Canvas canvasWhite = new Canvas(white);
+        canvasWhite.drawColor(Color.WHITE);
+        white = fillBoundary(white, boundary);
+
+        canvas.drawBitmap(white, boundary, boundary, null);
 
         Bitmap scaleLogo = Bitmap.createScaledBitmap(logo, logoSize, logoSize, false);
 
         Canvas canvasQR = new Canvas(qrImage);
-        canvasQR.drawBitmap(white, scale * 4 + (fullSize - background)/2, scale * 4 + (fullSize - background)/2, null);
+        canvasQR.drawBitmap(gray, scale * 4 + (fullSize - background)/2, scale * 4 + (fullSize - background)/2, null);
         canvasQR.drawBitmap(scaleLogo, scale * 4 + (fullSize - logoSize)/2, scale * 4 + (fullSize - logoSize)/2, null);
         return qrImage;
     }
 
-    private static Bitmap fillBoundary(Bitmap white) {
-        int boundary = white.getWidth() * 5 / 200;
+    private static Bitmap fillBoundary(Bitmap white, int boundary) {
         int size = white.getWidth();
-        int center = size / 2;
+        int r = boundary / 2;
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                if (i < boundary || i > size - (boundary + 1) || j < boundary || j > size - (boundary + 1)) {
-                    white.setPixel(i, j, Color.LTGRAY);
-                }
-
-                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center - boundary, 2) * 2) - boundary/2) {
-                    white.setPixel(i, j, Color.LTGRAY);
-                }
-
-                if (Math.sqrt(Math.pow(center - i, 2) + Math.pow(center - j, 2)) > Math.sqrt(Math.pow(center, 2) * 2) - boundary/2) {
-                    white.setPixel(i, j, Color.TRANSPARENT);
+                if (i < r && j < r) {
+                    if (Math.pow(r - i, 2) + Math.pow(r - j, 2) > Math.pow(r, 2)) {
+                        white.setPixel(i, j, Color.TRANSPARENT);
+                    }
+                } else if (i < r && j > size - (r + 1)) {
+                    if (Math.pow(r - i, 2) + Math.pow(size - (r + 1) - j, 2) > Math.pow(r, 2)) {
+                        white.setPixel(i, j, Color.TRANSPARENT);
+                    }
+                } else if (i > size - (r + 1) && j < r) {
+                    if (Math.pow(size - (r + 1) - i, 2) + Math.pow(r - j, 2) > Math.pow(r, 2)) {
+                        white.setPixel(i, j, Color.TRANSPARENT);
+                    }
+                } else if (i > size - (r + 1) && j > size - (r + 1)) {
+                    if (Math.pow(size - (r + 1) - i, 2) + Math.pow(size - (r + 1) - j, 2) > Math.pow(r, 2)) {
+                        white.setPixel(i, j, Color.TRANSPARENT);
+                    }
                 }
             }
         }

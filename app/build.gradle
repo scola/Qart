@@ -8,8 +8,8 @@ android {
         applicationId "io.github.scola.qart"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 7
-        versionName "1.6"
+        versionCode 8
+        versionName "1.7"
     }
 
     lintOptions {
@@ -20,14 +20,14 @@ android {
         cruncherEnabled false
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            signingConfig signingConfigs.release
-            zipAlignEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+//    buildTypes {
+//        release {
+//            minifyEnabled false
+//            signingConfig signingConfigs.release
+//            zipAlignEnabled true
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//        }
+//    }
 
     applicationVariants.all { variant ->
 

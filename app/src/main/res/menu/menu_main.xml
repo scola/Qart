@@ -64,11 +64,25 @@
                 app:showAsAction="never"
                 />
 
+            <item android:id="@+id/detect_qr"
+                android:icon="@android:drawable/ic_menu_zoom"
+                android:title="@string/detect"
+                android:orderInCategory="106"
+                app:showAsAction="never"
+                />
+
+            <item android:id="@+id/scan_qr"
+                android:icon="@android:drawable/ic_menu_camera"
+                android:title="@string/scan"
+                android:orderInCategory="107"
+                app:showAsAction="never"
+                />
+
             <item
                 android:id="@+id/about_info"
                 android:icon="@android:drawable/ic_menu_info_details"
                 android:title="@string/about"
-                android:orderInCategory="106"
+                android:orderInCategory="108"
                 app:showAsAction="never" />
         </menu>
 

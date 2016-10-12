@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="qr_list_uri">
+        <item>@string/copy</item>
+        <item>@string/import_text</item>
+        <item>@string/share</item>
+        <item>@string/open</item>
+    </string-array>
+
+    <string-array name="read_scan_qr">
+        <item>@string/scan_qr</item>
+        <item>@string/read_qr</item>
+    </string-array>
+
+</resources>
