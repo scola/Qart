@@ -64,16 +64,16 @@
                 app:showAsAction="never"
                 />
 
-            <item android:id="@+id/detect_qr"
-                android:icon="@android:drawable/ic_menu_zoom"
-                android:title="@string/detect"
+            <item android:id="@+id/scan_qr"
+                android:icon="@android:drawable/ic_menu_camera"
+                android:title="@string/scan"
                 android:orderInCategory="106"
                 app:showAsAction="never"
                 />
 
-            <item android:id="@+id/scan_qr"
-                android:icon="@android:drawable/ic_menu_camera"
-                android:title="@string/scan"
+            <item android:id="@+id/detect_qr"
+                android:icon="@android:drawable/ic_menu_zoom"
+                android:title="@string/detect"
                 android:orderInCategory="107"
                 app:showAsAction="never"
                 />

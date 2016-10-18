@@ -79,6 +79,7 @@ public class MainActivity extends ActionBarActivity {
     private final static int REQUEST_SEND_QR_TEXT = 2;
     private final static int REQUEST_PICK_QR_IMAGE = 3;
     private final static int REQUEST_DETECT_QR_IMAGE = 4;
+    private final static int REQUEST_SAVE_FILE = 5;
 
     private final static String PREF_TEXT_FOR_QR = "text";
     private final static String PREF_MODE_FOR_QR = "mode";
@@ -397,28 +398,9 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (id == R.id.save_qr) {
-            shareQr = new File(Environment.getExternalStorageDirectory(), "Pictures");
-            if (shareQr.exists() == false) {
-                shareQr.mkdirs();
+            if (isStoragePermissionGranted(REQUEST_SAVE_FILE)) {
+                saveQRImage();
             }
-
-            File newFile = mGif ? new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".gif")
-                                : new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
-
-            if (mGif) {
-                try {
-                    Util.copy(new File(getExternalCacheDir(), "Pictures/qrImage.gif"), newFile);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            } else {
-                Util.saveBitmap(mQRBitmap, newFile.toString());
-            }
-
-            Toast.makeText(this, _(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-            Uri uri = Uri.fromFile(newFile);
-            Intent scannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
-            sendBroadcast(scannerIntent);
         }
 
         if (id == R.id.revert_qr) {
@@ -447,6 +429,31 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void saveQRImage() {
+        shareQr = new File(Environment.getExternalStorageDirectory(), "Pictures");
+        if (shareQr.exists() == false) {
+            shareQr.mkdirs();
+        }
+
+        File newFile = mGif ? new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".gif")
+                : new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
+
+        if (mGif) {
+            try {
+                Util.copy(new File(getExternalCacheDir(), "Pictures/qrImage.gif"), newFile);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            Util.saveBitmap(mQRBitmap, newFile.toString());
+        }
+
+        Toast.makeText(this, _(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        Uri uri = Uri.fromFile(newFile);
+        Intent scannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
+        sendBroadcast(scannerIntent);
     }
 
     private void revertQR(boolean showFrame) {
@@ -1048,7 +1055,11 @@ public class MainActivity extends ActionBarActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
             Log.v(TAG,"Permission: "+ permissions[0] + "was "+ grantResults[0]);
-            launchGallery(requestCode);
+            if (requestCode == REQUEST_SAVE_FILE) {
+                saveQRImage();
+            } else {
+                launchGallery(requestCode);
+            }
         }
     }
 

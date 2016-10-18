@@ -1,15 +1,19 @@
 package io.github.scola.qart;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -35,6 +39,8 @@ import io.github.scola.cuteqr.CuteR;
 
 public class QRCodeResultActivity extends AppCompatActivity {
     private final static String TAG = "QRCodeResultActivity";
+
+    private final static int REQUEST_SAVE_FILE = 5;
 
     private String qrText;
     private String ssText;
@@ -151,15 +157,9 @@ public class QRCodeResultActivity extends AppCompatActivity {
 
                 break;
             case 4:
-                File downloadFolder = new File(Environment.getExternalStorageDirectory(), "Download");
-                if (!downloadFolder.exists()) {
-                    downloadFolder.mkdirs();
+                if (isStoragePermissionGranted(REQUEST_SAVE_FILE)) {
+                    saveSSConfigInFile();
                 }
-
-                File ssConfig = new File(downloadFolder, "ss_"+ text.split("@")[1].replace(":", "_") + ".json");
-                saveSSConfig(ssConfig, text);
-                Toast.makeText(this, getResources().getString(R.string.saved) + ssConfig.getAbsolutePath(), Toast.LENGTH_LONG).show();
-
                 break;
             case 5:
                 File shareFile = new File(getExternalCacheDir(), "ss_"+ text.split("@")[1].replace(":", "_") + ".json");
@@ -181,6 +181,17 @@ public class QRCodeResultActivity extends AppCompatActivity {
             default:
                 break;
         }
+    }
+
+    private void saveSSConfigInFile() {
+        File downloadFolder = new File(Environment.getExternalStorageDirectory(), "Download");
+        if (!downloadFolder.exists()) {
+            downloadFolder.mkdirs();
+        }
+
+        File ssConfig = new File(downloadFolder, "ss_"+ ssText.split("@")[1].replace(":", "_") + ".json");
+        saveSSConfig(ssConfig, ssText);
+        Toast.makeText(this, getResources().getString(R.string.saved) + ssConfig.getAbsolutePath(), Toast.LENGTH_LONG).show();
     }
 
     private String genShadowsocksConfig(String text) throws JSONException {
@@ -213,6 +224,34 @@ public class QRCodeResultActivity extends AppCompatActivity {
             ex.printStackTrace();
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public  boolean isStoragePermissionGranted(int request) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Permission is granted");
+                return true;
+            } else {
+                Log.v(TAG,"Permission is revoked");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, request);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Permission is granted");
+            return true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+            Log.v(TAG,"Permission: "+ permissions[0] + "was "+ grantResults[0]);
+                saveSSConfigInFile();
+
         }
     }
 
