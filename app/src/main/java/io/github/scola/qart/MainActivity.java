@@ -685,10 +685,6 @@ public class MainActivity extends ActionBarActivity {
                         mGifDrawable.recycle();
                     }
 
-                    mPickImage = true;
-                    mCropSize = null;
-                    mCropImage = null;
-                    pickPhoto.setShowSelectFrame(true);
                     try {
 //                        String path = getRealPathFromURI(this, data.getData());
                         String mimeType = getContentResolver().getType(data.getData());
@@ -729,6 +725,11 @@ public class MainActivity extends ActionBarActivity {
 //
 //                    pickPhoto.setImageDrawable(gif);
 //                    gif.setVisible(true, true);
+                    mPickImage = true;
+                    mCropSize = null;
+                    mCropImage = null;
+                    pickPhoto.setShowSelectFrame(true);
+
                     hideSaveMenu();
                     showQrMenu();
                     hideNavigation();

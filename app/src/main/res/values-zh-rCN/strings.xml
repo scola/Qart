@@ -39,7 +39,7 @@
     <string name="embed_title">嵌入</string>
     <string name="logo_title">图标</string>
     <string name="guide_start">开始</string>
-    <string name="gif_picture_only">只有图标模式支持 GIF</string>
+    <string name="gif_picture_only">只有图片模式支持 GIF</string>
     <string name="qr_result">扫描识别结果</string>
     <string name="open">打开</string>
     <string name="copy">复制</string>
