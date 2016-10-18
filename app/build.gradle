@@ -8,8 +8,8 @@ android {
         applicationId "io.github.scola.qart"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 8
-        versionName "1.7"
+        versionCode 9
+        versionName "1.8"
     }
 
     lintOptions {
@@ -49,6 +49,7 @@ dependencies {
     compile 'com.journeyapps:zxing-android-embedded:3.3.0'
     compile 'com.github.castorflex.smoothprogressbar:library:1.1.0'
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.2'
+    compile 'com.aurelhubert:ahbottomnavigation:1.5.1'
     compile project(':cropper')
     compile project(':onboarder')
 }

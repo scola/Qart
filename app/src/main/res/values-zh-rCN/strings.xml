@@ -52,5 +52,6 @@
     <string name="cannot_detect_qr">不能从图片中提取二维码</string>
     <string name="scan_or_read">扫描或读取二维码</string>
     <string name="detect">识别</string>
+    <string name="send">发送</string>
 
 </resources>

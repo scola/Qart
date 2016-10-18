@@ -35,4 +35,17 @@
         android:textAlignment="center"
          />
 
+    <TextView
+        android:id="@+id/ss_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginTop="10dp"
+        android:visibility="invisible"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorLink"
+        android:text="ss://"
+        android:textAlignment="center"
+        />
+
 </LinearLayout>

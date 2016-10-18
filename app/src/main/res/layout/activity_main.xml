@@ -44,7 +44,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/text_group"
         android:visibility="invisible"
-        android:gravity="bottom"
+        android:gravity="top"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -61,4 +61,11 @@
             android:layout_height="wrap_content"/>
 
         </LinearLayout>
+
+    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
+        android:id="@+id/bottom_navigation"
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 </FrameLayout>

@@ -45,6 +45,8 @@ import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.edmodo.cropper.CropImageView;
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerClickListener;
@@ -99,6 +101,11 @@ public class MainActivity extends ActionBarActivity {
     private MenuItem revertMenu;
     private MenuItem galleryMenu;
     private MenuItem colorMenu;
+    private MenuItem modeMenu;
+    private MenuItem scanMenu;
+    private MenuItem detectMenu;
+
+    AHBottomNavigation mBottomNavigation;
 
     private LinearLayout editTextView;
 
@@ -203,6 +210,46 @@ public class MainActivity extends ActionBarActivity {
                 builder.show();
             }
         });
+
+        mBottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem(R.string.select_mode, android.R.drawable.ic_menu_slideshow, android.R.color.white);
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem(R.string.scan, android.R.drawable.ic_menu_camera, android.R.color.white);
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem(R.string.detect, android.R.drawable.ic_menu_zoom, android.R.color.white);
+
+        mBottomNavigation.addItem(item1);
+        mBottomNavigation.addItem(item2);
+        mBottomNavigation.addItem(item3);
+
+        mBottomNavigation.setDefaultBackgroundColor(ContextCompat.getColor(this, android.R.color.black));
+
+        // Change colors
+        mBottomNavigation.setAccentColor(Color.WHITE);
+        mBottomNavigation.setInactiveColor(Color.LTGRAY);
+
+        mBottomNavigation.setCurrentItem(1);
+
+        mBottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
+            @Override
+            public boolean onTabSelected(int position, boolean wasSelected) {
+                // Do something cool here...
+//                Toast.makeText(MainActivity.this, "position: " + position, Toast.LENGTH_SHORT).show();
+                switch (position) {
+                    case 0:
+                        showListDialog();
+                        break;
+                    case 1:
+                        mScan = true;
+                        new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
+                        break;
+                    case 2:
+                        pickImage(REQUEST_DETECT_QR_IMAGE);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -218,6 +265,15 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void onBackPressed() {
+        if (mPickImage) {
+            mPickImage = false;
+            int mode = mCurrentMode;
+            mCurrentMode = -1;
+            setCurrentMode(mode);
+            showNavigation();
+            return;
+        }
+
         if (doubleBackToExitPressedOnce) {
             super.onBackPressed();
             return;
@@ -247,6 +303,9 @@ public class MainActivity extends ActionBarActivity {
         galleryMenu = menu.findItem(R.id.launch_gallery);
         revertMenu = menu.findItem(R.id.revert_qr);
         colorMenu = menu.findItem(R.id.change_color);
+        modeMenu = menu.findItem(R.id.select_mode);
+        scanMenu = menu.findItem(R.id.scan_qr);
+        detectMenu = menu.findItem(R.id.detect_qr);
 
         hideQrMenu();
         hideSaveMenu();
@@ -254,6 +313,8 @@ public class MainActivity extends ActionBarActivity {
         final SharedPreferences modePref = getPreferences(Context.MODE_PRIVATE);
         int mode = modePref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE);
         setCurrentMode(mode);
+
+        showNavigation();
 
         return true;
     }
@@ -670,6 +731,7 @@ public class MainActivity extends ActionBarActivity {
 //                    gif.setVisible(true, true);
                     hideSaveMenu();
                     showQrMenu();
+                    hideNavigation();
                 }
                 break;
             case REQUEST_SEND_QR_TEXT:
@@ -730,6 +792,20 @@ public class MainActivity extends ActionBarActivity {
                 }
                 break;
         }
+    }
+
+    public void hideNavigation() {
+        mBottomNavigation.setVisibility(View.INVISIBLE);
+        modeMenu.setVisible(true);
+        scanMenu.setVisible(true);
+        detectMenu.setVisible(true);
+    }
+
+    public void showNavigation() {
+        mBottomNavigation.setVisibility(View.VISIBLE);
+        modeMenu.setVisible(false);
+        scanMenu.setVisible(false);
+        detectMenu.setVisible(false);
     }
 
     public void hideGalleryMenu() {

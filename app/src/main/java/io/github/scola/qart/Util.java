@@ -10,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  * Created by shaozheng on 2016/9/1.
@@ -46,6 +48,14 @@ public class Util {
             out.write(buf, 0, len);
         }
         in.close();
+        out.close();
+    }
+
+    public static void saveConfig(File dst, String config) throws IOException {
+        OutputStream out = new FileOutputStream(dst);
+        Writer writer = new OutputStreamWriter(out);
+        writer.write(config);
+        writer.close();
         out.close();
     }
 }

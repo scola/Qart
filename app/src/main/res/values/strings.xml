@@ -53,5 +53,6 @@
     <string name="cannot_detect_qr">Can not decode image</string>
     <string name="scan_or_read">Scan or read QR code</string>
     <string name="detect">Detect</string>
+    <string name="send">Send</string>
 
 </resources>
