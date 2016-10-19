@@ -133,8 +133,8 @@ public class QRCodeResultActivity extends AppCompatActivity {
                 startActivity(Intent.createChooser(i, getResources().getString(R.string.share_channel)));
                 break;
             case 3:
-                Uri uri = Uri.parse(text);;
-                String url = text.toLowerCase();
+                Uri uri = Uri.parse(qrText);;
+                String url = qrText.toLowerCase();
                 if (url.contains("http://") || url.contains("https://")) {
                     Matcher m = Patterns.WEB_URL.matcher(url);
                     if (m.find()) {

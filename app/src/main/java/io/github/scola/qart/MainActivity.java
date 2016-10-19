@@ -266,6 +266,11 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void onBackPressed() {
+        if (editTextView.getVisibility() == View.VISIBLE) {
+            editTextView.setVisibility(View.INVISIBLE);
+            return;
+        }
+
         if (mPickImage) {
             mPickImage = false;
             int mode = mCurrentMode;
@@ -352,6 +357,10 @@ public class MainActivity extends ActionBarActivity {
             if (mConverting) {
                 Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
                 return true;
+            }
+
+            if (editTextView.getVisibility() == View.VISIBLE) {
+                editTextView.setVisibility(View.INVISIBLE);
             }
 
             new AlertDialog.Builder(this)
