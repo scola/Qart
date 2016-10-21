@@ -5,19 +5,19 @@
     <item android:id="@+id/launch_gallery"
         android:icon="@android:drawable/ic_menu_gallery"
         android:title="@string/gallery"
-        app:showAsAction="ifRoom|withText"
+        app:showAsAction="always|withText"
     />
 
     <item android:id="@+id/convert_qr"
         android:icon="@android:drawable/ic_menu_send"
         android:title="@string/convert"
-        app:showAsAction="ifRoom|withText"
+        app:showAsAction="always|withText"
     />
 
     <item android:id="@+id/share_qr"
         android:icon="@android:drawable/ic_menu_share"
         android:title="@string/share"
-        app:showAsAction="ifRoom|withText"
+        app:showAsAction="always|withText"
     />
 
     <!--android:icon="@drawable/ic_drawer"-->

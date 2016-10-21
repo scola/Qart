@@ -188,49 +188,52 @@ public class CuteR {
         int background = (int) (fullSize * LOGO_BACKGROUND / FULL_LOGO_QR);
         int logoSize = (int) (fullSize * LOGO_SIZE / FULL_LOGO_QR);
 
-        Bitmap gray =  Bitmap.createBitmap(background, background, Bitmap.Config.ARGB_8888);
-        int boundary = gray.getWidth() * 5 / 200;
+        Bitmap white =  Bitmap.createBitmap(background, background, Bitmap.Config.ARGB_8888);
+        int boundary = (background - logoSize) / 2;
 
-        Canvas canvas = new Canvas(gray);
-        canvas.drawColor(Color.LTGRAY);
-        gray = fillBoundary(gray, boundary);
+        Canvas canvas = new Canvas(white);
+        canvas.drawColor(Color.WHITE);
 
-        Bitmap white =  Bitmap.createBitmap(background - boundary * 2, background - boundary * 2, Bitmap.Config.ARGB_8888);
-        Canvas canvasWhite = new Canvas(white);
-        canvasWhite.drawColor(Color.WHITE);
-        white = fillBoundary(white, boundary);
-
-        canvas.drawBitmap(white, boundary, boundary, null);
+//        Bitmap white =  Bitmap.createBitmap(background - boundary * 2, background - boundary * 2, Bitmap.Config.ARGB_8888);
+//        Canvas canvasWhite = new Canvas(white);
+//        canvasWhite.drawColor(Color.WHITE);
+//        white = fillBoundary(white, boundary);
+//
+//        canvas.drawBitmap(white, boundary, boundary, null);
 
         Bitmap scaleLogo = Bitmap.createScaledBitmap(logo, logoSize, logoSize, false);
+        scaleLogo = fillBoundary(scaleLogo, boundary, Color.WHITE);
+        canvas.drawBitmap(scaleLogo, boundary, boundary, null);
+        canvas.save();
+        white = fillBoundary(white, boundary, Color.TRANSPARENT);
 
         Canvas canvasQR = new Canvas(qrImage);
-        canvasQR.drawBitmap(gray, scale * 4 + (fullSize - background)/2, scale * 4 + (fullSize - background)/2, null);
-        canvasQR.drawBitmap(scaleLogo, scale * 4 + (fullSize - logoSize)/2, scale * 4 + (fullSize - logoSize)/2, null);
+        canvasQR.drawBitmap(white, scale * 4 + (fullSize - background)/2, scale * 4 + (fullSize - background)/2, null);
+//        canvasQR.drawBitmap(scaleLogo, scale * 4 + (fullSize - logoSize)/2, scale * 4 + (fullSize - logoSize)/2, null);
         return qrImage;
     }
 
-    private static Bitmap fillBoundary(Bitmap white, int boundary) {
+    private static Bitmap fillBoundary(Bitmap white, int boundary, int color) {
         int size = white.getWidth();
-        int r = boundary / 2;
+        int r = boundary;
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (i < r && j < r) {
                     if (Math.pow(r - i, 2) + Math.pow(r - j, 2) > Math.pow(r, 2)) {
-                        white.setPixel(i, j, Color.TRANSPARENT);
+                        white.setPixel(i, j, color);
                     }
                 } else if (i < r && j > size - (r + 1)) {
                     if (Math.pow(r - i, 2) + Math.pow(size - (r + 1) - j, 2) > Math.pow(r, 2)) {
-                        white.setPixel(i, j, Color.TRANSPARENT);
+                        white.setPixel(i, j, color);
                     }
                 } else if (i > size - (r + 1) && j < r) {
                     if (Math.pow(size - (r + 1) - i, 2) + Math.pow(r - j, 2) > Math.pow(r, 2)) {
-                        white.setPixel(i, j, Color.TRANSPARENT);
+                        white.setPixel(i, j, color);
                     }
                 } else if (i > size - (r + 1) && j > size - (r + 1)) {
                     if (Math.pow(size - (r + 1) - i, 2) + Math.pow(size - (r + 1) - j, 2) > Math.pow(r, 2)) {
-                        white.setPixel(i, j, Color.TRANSPARENT);
+                        white.setPixel(i, j, color);
                     }
                 }
             }
