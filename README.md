@@ -33,7 +33,7 @@ Screenshot
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8bqzrkav7g20c90c9466)
 
 ### Logo
-![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8zmbxws9cj20zu0zujtd)
+![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8zoubd8dkj20kg0kgta3)
 
 ### Embed
 ![Screenshot](http://ww2.sinaimg.cn/large/a15b4afegw1f8br0aiow1j20ic0r67sa.jpg)  
