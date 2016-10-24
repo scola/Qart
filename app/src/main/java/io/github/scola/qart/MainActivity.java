@@ -258,7 +258,7 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
         final SharedPreferences sharedPref = getSharedPreferences(PREF_GUIDE_VERSION, Context.MODE_PRIVATE);
         String version = sharedPref.getString(PREF_GUIDE_VERSION, "");
-        if (!version.equals(getMyVersion(this))) {
+        if (version.isEmpty() || version.split("\\.")[0].equals(getMyVersion(this).split("\\.")[0]) == false) {
             Intent i = new Intent(this, IntroActivity.class);
             startActivity(i);
         }
