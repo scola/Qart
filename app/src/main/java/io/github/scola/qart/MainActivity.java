@@ -9,11 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -41,7 +39,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -51,12 +48,7 @@ import com.edmodo.cropper.CropImageView;
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerClickListener;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Result;
-import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -637,25 +629,7 @@ public class MainActivity extends ActionBarActivity {
         new AsyncTask<Void, Void, Result>() {
             @Override
             protected Result doInBackground(Void... voids ) {
-//                Bitmap blackWhite = CuteR.createContrast(bitmap, 50, 0);
-                Bitmap blackWhite = CuteR.ConvertToBlackAndWhite(bitmap);
-                int width = blackWhite.getWidth(), height = blackWhite.getHeight();
-                int[] pixels = new int[width * height];
-                blackWhite.getPixels(pixels, 0, width, 0, 0, width, height);
-                RGBLuminanceSource source = new RGBLuminanceSource(width, height, pixels);
-                BinaryBitmap bBitmap = new BinaryBitmap(new HybridBinarizer(source));
-                MultiFormatReader reader = new MultiFormatReader();
-                try
-                {
-                    Result result = reader.decode(bBitmap);
-                    return result;
-                }
-                catch (NotFoundException e)
-                {
-                    Log.e(TAG, "decode exception", e);
-                    return null;
-                }
-
+                return CuteR.decodeQRImage(bitmap);
             }
             @Override
             protected void onPostExecute(Result post) {

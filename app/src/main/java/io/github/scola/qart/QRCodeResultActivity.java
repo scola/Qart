@@ -116,6 +116,9 @@ public class QRCodeResultActivity extends AppCompatActivity {
         switch (pos) {
             case 0:
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (ssText != null) {
+                    text = getAllSsConfig(ssText);
+                }
                 ClipData clip = ClipData.newPlainText("label", text);
                 clipboard.setPrimaryClip(clip);
                 Toast.makeText(this, R.string.qr_copied, Toast.LENGTH_SHORT).show();
@@ -129,6 +132,9 @@ public class QRCodeResultActivity extends AppCompatActivity {
             case 2:
                 Intent i = new Intent(android.content.Intent.ACTION_SEND);
                 i.setType("text/plain");
+                if (ssText != null) {
+                    text = getAllSsConfig(ssText);
+                }
                 i.putExtra(Intent.EXTRA_TEXT, text);
                 startActivity(Intent.createChooser(i, getResources().getString(R.string.share_channel)));
                 break;
@@ -215,6 +221,31 @@ public class QRCodeResultActivity extends AppCompatActivity {
         newStr = newStr.substring(0, newStr.length() - 1) + "\n}";
 
         return newStr;
+    }
+
+    private String getAllSsConfig(String text) {
+        StringBuilder sb = new StringBuilder(text);
+
+        String[] secretServer = text.split("@");
+        String[] secret = secretServer[0].replace("ss://", "").split(":");
+        String[] serverPort = secretServer[1].split(":");
+
+        sb.append("\n\n");
+        sb.append("sslocal");
+        sb.append(" -s " + serverPort[0]);
+        sb.append(" -p " + serverPort[1]);
+        sb.append(" -m " + secret[0]);
+        sb.append(" -k " + secret[1]);
+        sb.append(" -l " + 1080);
+        sb.append(" -v");
+
+        sb.append("\n\n");
+        try {
+            sb.append(genShadowsocksConfig(text));
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+        }
+        return sb.toString();
     }
 
     private void saveSSConfig(File dst, String text) {

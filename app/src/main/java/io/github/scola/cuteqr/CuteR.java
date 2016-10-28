@@ -9,8 +9,15 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.EncodeHintType;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
 import com.google.zxing.WriterException;
+import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.encoder.Encoder;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
@@ -18,6 +25,7 @@ import com.google.zxing.qrcode.encoder.ByteMatrix;
 import com.google.zxing.qrcode.encoder.QRCode;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -148,7 +156,7 @@ public class CuteR {
 
     private static Bitmap resizeQuiteZone(Bitmap qrBitmap, double scale) {
         int size = qrBitmap.getWidth();
-        int boundary = (int) (3 * scale);
+        int boundary = (int) (3.5 * scale);
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (i < boundary || i > size - (boundary + 1) || j < boundary || j > size - (boundary + 1)) {
@@ -411,6 +419,19 @@ public class CuteR {
         return rBitmap;
     }
 
+    public static Bitmap addQRQuietZone(Bitmap qrBitmap) {
+        int size = Math.min(qrBitmap.getWidth(), qrBitmap.getHeight());
+        int boundary = size / 5;
+
+        Bitmap white =  Bitmap.createBitmap(qrBitmap.getWidth() + boundary*2, qrBitmap.getWidth() + boundary*2, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(white);
+        canvas.drawColor(Color.WHITE);
+        canvas.drawBitmap(qrBitmap, boundary, boundary, null);
+
+        return white;
+    }
+
     public static Bitmap createContrast(Bitmap src, double value, int brightness) {
         // image size
         int width = src.getWidth();
@@ -575,6 +596,31 @@ public class CuteR {
         matrix.setScale(scaleX, scaleY);
         bitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
         return bitmap;
+    }
+
+    public static Result decodeQRImage(Bitmap bitmap) {
+        Bitmap blackWhite = ConvertToBlackAndWhite(bitmap);
+        int width = blackWhite.getWidth(), height = blackWhite.getHeight();
+        int[] pixels = new int[width * height];
+        blackWhite.getPixels(pixels, 0, width, 0, 0, width, height);
+        RGBLuminanceSource source = new RGBLuminanceSource(width, height, pixels);
+        BinaryBitmap bBitmap = new BinaryBitmap(new HybridBinarizer(source));
+        MultiFormatReader reader = new MultiFormatReader();
+        try {
+            Result result = reader.decode(bBitmap);
+            return result;
+        } catch (NotFoundException e) {
+            Log.e(TAG, "direct decode exception", e);
+            HashMap<DecodeHintType, Object> map = new HashMap<>();
+            map.put(DecodeHintType.PURE_BARCODE, Boolean.TRUE);
+            try {
+                Result result = reader.decode(bBitmap, map);
+                return result;
+            } catch (NotFoundException ex) {
+                Log.e(TAG, "DecodeHintType.PURE_BARCODE exception", ex);
+                return null;
+            }
+        }
     }
 
 }
