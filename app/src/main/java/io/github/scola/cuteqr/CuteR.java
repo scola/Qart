@@ -173,10 +173,22 @@ public class CuteR {
             QRImage = encodeAsBitmap(txt);
         } catch (WriterException e) {
             Log.e(TAG, "encodeAsBitmap: " + e);
+            return null;
         }
 
         if (colorful && color != Color.BLACK) {
             QRImage = replaceColor(QRImage, color);
+        }
+        return Bitmap.createScaledBitmap(QRImage, QRImage.getWidth() * SCALE_NORMAL_QR, QRImage.getHeight() * SCALE_NORMAL_QR, false);
+    }
+
+    public static Bitmap ProductForResult(String txt) {
+        Bitmap QRImage = null;
+        try {
+            QRImage = encodeAsBitmap(txt, ErrorCorrectionLevel.L);
+        } catch (WriterException e) {
+            Log.e(TAG, "encodeAsBitmap: " + e);
+            return null;
         }
         return Bitmap.createScaledBitmap(QRImage, QRImage.getWidth() * SCALE_NORMAL_QR, QRImage.getHeight() * SCALE_NORMAL_QR, false);
     }
@@ -330,6 +342,10 @@ public class CuteR {
     }
 
     public static Bitmap encodeAsBitmap(String txt) throws WriterException {
+        return encodeAsBitmap(txt, ErrorCorrectionLevel.H);
+    }
+
+    public static Bitmap encodeAsBitmap(String txt, ErrorCorrectionLevel level) throws WriterException {
         String contentsToEncode = txt;
         if (contentsToEncode == null) {
             return null;
@@ -344,7 +360,7 @@ public class CuteR {
         BitMatrix result;
         QRCode qrCode;
         try {
-            qrCode = Encoder.encode(contentsToEncode, ErrorCorrectionLevel.H, hints);
+            qrCode = Encoder.encode(contentsToEncode, level, hints);
             patternCenters = qrCode.getVersion().getAlignmentPatternCenters();
             // result = new MultiFormatWriter().encode(contentsToEncode, BarcodeFormat.QR_CODE, dimension, dimension, hints);
             result = renderResult(qrCode, 4);

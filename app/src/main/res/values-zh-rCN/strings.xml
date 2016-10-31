@@ -53,5 +53,6 @@
     <string name="scan_or_read">扫描或读取二维码</string>
     <string name="detect">识别</string>
     <string name="send">发送</string>
+	<string name="text_too_long">文本太长，请输入短一点的文本</string>
 
 </resources>

@@ -65,7 +65,7 @@ public class QRCodeResultActivity extends AppCompatActivity {
         if (qrText.isEmpty()) {
             mTextView.setVisibility(View.INVISIBLE);
         } else {
-            mQRImage.setImageBitmap(CuteR.ProductNormal(qrText, false, Color.BLACK));
+            mQRImage.setImageBitmap(CuteR.ProductForResult(qrText));
             mTextView.setOnClickListener(getClickListener(qrText, getResources().getStringArray(R.array.qr_list_uri)));
             mTextView.setText(qrText);
             if (qrText.startsWith("ss://")) {

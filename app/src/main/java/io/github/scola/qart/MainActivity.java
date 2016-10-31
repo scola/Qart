@@ -954,9 +954,16 @@ public class MainActivity extends ActionBarActivity {
         if (qrText == txt) {
             return;
         }
+
+        Bitmap checkTextBitmap = CuteR.ProductNormal(txt, false, Color.BLACK);
+        if (checkTextBitmap == null) {
+            Toast.makeText(this, _(R.string.text_too_long), Toast.LENGTH_LONG).show();
+            return;
+        }
+
         qrText = txt;
         if (mCurrentMode == NORMAL_MODE) {
-            mQRBitmap = CuteR.ProductNormal(txt, false, Color.BLACK);
+            mQRBitmap = checkTextBitmap;
             pickPhoto.setImageBitmap(mQRBitmap);
         }
 

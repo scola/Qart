@@ -54,5 +54,6 @@
     <string name="scan_or_read">Scan or read QR code</string>
     <string name="detect">Detect</string>
     <string name="send">Send</string>
+    <string name="text_too_long">Text is too long. Please input shorter text</string>
 
 </resources>
