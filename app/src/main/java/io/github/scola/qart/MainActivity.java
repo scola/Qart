@@ -264,6 +264,10 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (mPickImage) {
+            if (mGifDrawable != null) {
+                mGifDrawable.recycle();
+            }
+            mGif = false;
             mPickImage = false;
             int mode = mCurrentMode;
             mCurrentMode = -1;
