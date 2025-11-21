@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    namespace 'io.github.scola.qart'
+    compileSdkVersion 34
 
     defaultConfig {
         applicationId "io.github.scola.qart"
-        minSdkVersion 14
-        targetSdkVersion 23
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode 14
         versionName "2.3"
     }
@@ -20,36 +20,32 @@ android {
         cruncherEnabled false
     }
 
-//    buildTypes {
-//        release {
-//            minifyEnabled false
-//            signingConfig signingConfigs.release
-//            zipAlignEnabled true
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-//        }
-//    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 
     applicationVariants.all { variant ->
 
-        variant.outputs.each { output ->
+        variant.outputs.all { output ->
             def outputFile = output.outputFile
             if (outputFile != null && outputFile.name.endsWith('.apk')) {
                 def fileName = outputFile.name.replace("app", "Qart").replace(".apk", "-${defaultConfig.versionName}.apk")
-                output.outputFile = new File(outputFile.parent, fileName)
+                outputFileName = fileName
             }
         }
     }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile(name: 'colorpicker', ext: 'aar')
-    compile 'com.android.support:appcompat-v7:23.3.0'
-    compile 'com.google.zxing:core:3.2.1'
-    compile 'com.journeyapps:zxing-android-embedded:3.3.0'
-    compile 'com.github.castorflex.smoothprogressbar:library:1.1.0'
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.2'
-    compile 'com.aurelhubert:ahbottomnavigation:1.5.1'
-    compile project(':cropper')
-    compile project(':onboarder')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation(name: 'colorpicker', ext: 'aar')
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.zxing:core:3.2.1'
+    implementation 'com.journeyapps:zxing-android-embedded:3.3.0'
+    implementation 'com.github.castorflex.smoothprogressbar:library:1.1.0'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.2'
+    implementation 'com.aurelhubert:ahbottomnavigation:1.5.1'
+    implementation project(':cropper')
+    implementation project(':onboarder')
 }

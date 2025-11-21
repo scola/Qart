@@ -19,9 +19,9 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBarActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -65,7 +65,7 @@ import io.github.scola.gif.AnimatedGifEncoder;;
 import pl.droidsonroids.gif.GifDrawable;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
     private final static int REQUEST_PICK_IMAGE = 1;
     private final static int REQUEST_SEND_QR_TEXT = 2;
@@ -181,7 +181,7 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v){
                 String[] items = getResources().getStringArray(R.array.read_scan_qr);
 
-                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainActivity.this);
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(R.string.scan_or_read);
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override

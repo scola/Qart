@@ -4,12 +4,12 @@ import android.animation.ArgbEvaluator;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.ColorInt;
-import android.support.annotation.StringRes;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.ColorInt;
+import androidx.annotation.StringRes;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.core.content.ContextCompat;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +21,8 @@ import com.chyrta.onboarder.views.CircleIndicatorView;
 
 import java.util.List;
 
-public abstract class OnboarderActivity extends AppCompatActivity implements View.OnClickListener, ViewPager.OnPageChangeListener {
+public abstract class OnboarderActivity extends AppCompatActivity
+        implements View.OnClickListener, ViewPager.OnPageChangeListener {
 
     private Integer[] colors;
     private CircleIndicatorView circleIndicatorView;
@@ -85,9 +86,9 @@ public abstract class OnboarderActivity extends AppCompatActivity implements Vie
 
     public void setDividerHeight(int heightInDp) {
         if (!this.shouldDarkenButtonsLayout)
-            this.divider.getLayoutParams().height =
-                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, heightInDp,
-                            getResources().getDisplayMetrics());
+            this.divider.getLayoutParams().height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    heightInDp,
+                    getResources().getDisplayMetrics());
     }
 
     public void setDividerVisibility(int dividerVisibility) {
@@ -126,9 +127,9 @@ public abstract class OnboarderActivity extends AppCompatActivity implements Vie
             this.btnSkip.setVisibility(View.GONE);
             this.ibNext.setVisibility(View.GONE);
             this.ibNext.setFocusable(false);
-            this.buttonsLayout.getLayoutParams().height =
-                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 96,
-                            getResources().getDisplayMetrics());
+            this.buttonsLayout.getLayoutParams().height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    96,
+                    getResources().getDisplayMetrics());
         }
 
     }
@@ -164,15 +165,17 @@ public abstract class OnboarderActivity extends AppCompatActivity implements Vie
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        if(position < (onboarderAdapter.getCount() - 1) && position < (colors.length - 1)) {
-            vpOnboarderPager.setBackgroundColor((Integer) evaluator.evaluate(positionOffset, colors[position], colors[position + 1]));
+        if (position < (onboarderAdapter.getCount() - 1) && position < (colors.length - 1)) {
+            vpOnboarderPager.setBackgroundColor(
+                    (Integer) evaluator.evaluate(positionOffset, colors[position], colors[position + 1]));
             if (shouldDarkenButtonsLayout) {
-                buttonsLayout.setBackgroundColor(darkenColor((Integer) evaluator.evaluate(positionOffset, colors[position], colors[position + 1])));
+                buttonsLayout.setBackgroundColor(darkenColor(
+                        (Integer) evaluator.evaluate(positionOffset, colors[position], colors[position + 1])));
                 divider.setVisibility(View.GONE);
             }
         } else {
             vpOnboarderPager.setBackgroundColor(colors[colors.length - 1]);
-            if(shouldDarkenButtonsLayout) {
+            if (shouldDarkenButtonsLayout) {
                 buttonsLayout.setBackgroundColor(darkenColor(colors[colors.length - 1]));
                 divider.setVisibility(View.GONE);
             }
@@ -183,10 +186,13 @@ public abstract class OnboarderActivity extends AppCompatActivity implements Vie
     public void onPageSelected(int position) {
         int lastPagePosition = onboarderAdapter.getCount() - 1;
         circleIndicatorView.setCurrentPage(position);
-        ibNext.setVisibility(position == lastPagePosition && !this.shouldUseFloatingActionButton ? View.GONE : View.VISIBLE);
-        btnFinish.setVisibility(position == lastPagePosition && !this.shouldUseFloatingActionButton ? View.VISIBLE : View.GONE);
+        ibNext.setVisibility(
+                position == lastPagePosition && !this.shouldUseFloatingActionButton ? View.GONE : View.VISIBLE);
+        btnFinish.setVisibility(
+                position == lastPagePosition && !this.shouldUseFloatingActionButton ? View.VISIBLE : View.GONE);
         if (this.shouldUseFloatingActionButton)
-            this.fab.setImageResource(position == lastPagePosition ? R.drawable.ic_done_white_24dp : R.drawable.ic_arrow_forward_white_24dp);
+            this.fab.setImageResource(position == lastPagePosition ? R.drawable.ic_done_white_24dp
+                    : R.drawable.ic_arrow_forward_white_24dp);
     }
 
     @Override
