@@ -385,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.share_qr) {
-            shareQr = new File(getExternalCacheDir(), "Pictures");
+            shareQr = new File(getAppCacheDir(), "Pictures");
             if (shareQr.exists() == false) {
                 shareQr.mkdirs();
             }
@@ -394,7 +394,8 @@ public class MainActivity extends AppCompatActivity {
                 Util.saveBitmap(mQRBitmap, newFile.toString());
             }
 
-            Uri contentUri = Uri.fromFile(newFile);
+            Uri contentUri = androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".provider",
+                    newFile);
 
             if (contentUri != null) {
                 Log.d(TAG, "Uri: " + contentUri);
@@ -457,7 +458,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (mGif) {
             try {
-                Util.copy(new File(getExternalCacheDir(), "Pictures/qrImage.gif"), newFile);
+                Util.copy(new File(getAppCacheDir(), "Pictures/qrImage.gif"), newFile);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -537,6 +538,14 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(photoPickerIntent, request);
     }
 
+    private File getAppCacheDir() {
+        File cacheDir = getExternalCacheDir();
+        if (cacheDir == null) {
+            cacheDir = getCacheDir();
+        }
+        return cacheDir;
+    }
+
     private void startConvert(final boolean colorful, final int color) {
         mConverting = true;
         if (mCurrentMode == NORMAL_MODE) {
@@ -550,7 +559,7 @@ public class MainActivity extends AppCompatActivity {
             protected Void doInBackground(Void... voids) {
                 if (mGif) {
                     QRGifArray = CuteR.ProductGIF(qrText, gifArray, colorful, color);
-                    shareQr = new File(getExternalCacheDir(), "Pictures");
+                    shareQr = new File(getAppCacheDir(), "Pictures");
                     if (shareQr.exists() == false) {
                         shareQr.mkdirs();
                     }
@@ -1102,7 +1111,8 @@ public class MainActivity extends AppCompatActivity {
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 MainActivity.this,
                 android.R.layout.select_dialog_singlechoice);
-        final String[] modes = new String[] { str(R.string.normal_mode), str(R.string.picture_mode), str(R.string.logo_mode),
+        final String[] modes = new String[] { str(R.string.normal_mode), str(R.string.picture_mode),
+                str(R.string.logo_mode),
                 str(R.string.embed_mode) };
         for (String mode : modes) {
             arrayAdapter.add(mode);
