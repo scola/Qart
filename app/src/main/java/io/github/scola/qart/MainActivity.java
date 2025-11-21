@@ -61,9 +61,8 @@ import java.util.Date;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressDrawable;
 import io.github.scola.cuteqr.CuteR;
-import io.github.scola.gif.AnimatedGifEncoder;;
+import io.github.scola.gif.AnimatedGifEncoder;
 import pl.droidsonroids.gif.GifDrawable;
-
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     public final static String PREF_GUIDE_VERSION = "version";
 
     private final static int MAX_INPUT_BITMAP_WIDTH = 720;
-    private final static int MAX_INPUT_BITMAP_HEIGHT= 1280;
+    private final static int MAX_INPUT_BITMAP_HEIGHT = 1280;
 
     private final static int COLOR_BRIGHTNESS_THRESHOLD = 0x7f;
 
@@ -136,39 +135,40 @@ public class MainActivity extends AppCompatActivity {
     private boolean mScan;
 
     private int mColor = Color.rgb(0x28, 0x32, 0x60);
-    final private int[] modeGuide = {R.drawable.guide_img, R.drawable.guide_img_logo, R.drawable.guide_img_embed};
+    final private int[] modeGuide = { R.drawable.guide_img, R.drawable.guide_img_logo, R.drawable.guide_img_embed };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        pickPhoto = (CropImageView)findViewById(R.id.pick_img);
-        editTextView = (LinearLayout)findViewById(R.id.text_group);
+        pickPhoto = (CropImageView) findViewById(R.id.pick_img);
+        editTextView = (LinearLayout) findViewById(R.id.text_group);
         mEditTextView = (EditText) findViewById(R.id.edit_text);
-        qrButton = (ImageView)findViewById(R.id.emotion_button);
-        setTextButton = (Button)findViewById(R.id.btn_send);
+        qrButton = (ImageView) findViewById(R.id.emotion_button);
+        setTextButton = (Button) findViewById(R.id.btn_send);
 
         mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
-        mProgressBar.setIndeterminateDrawable(new SmoothProgressDrawable.Builder(this).interpolator(new AccelerateInterpolator()).build());
+        mProgressBar.setIndeterminateDrawable(
+                new SmoothProgressDrawable.Builder(this).interpolator(new AccelerateInterpolator()).build());
         mProgressBar.setVisibility(View.INVISIBLE);
 
         mEditTextView.addTextChangedListener(TextWatcherNewInstance());
 
         final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        qrText = sharedPref.getString(PREF_TEXT_FOR_QR, _(R.string.default_qr_text));
+        qrText = sharedPref.getString(PREF_TEXT_FOR_QR, str(R.string.default_qr_text));
 
         pickPhoto.setFixedAspectRatio(true);
 
         setTextButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 String txt = mEditTextView.getText().toString().trim();
                 if (txt.isEmpty() == false) {
                     saveQrText(txt);
                     View view = MainActivity.this.getCurrentFocus();
                     if (view != null) {
-                        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                     }
                     editTextView.setVisibility(View.INVISIBLE);
@@ -178,10 +178,11 @@ public class MainActivity extends AppCompatActivity {
 
         qrButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 String[] items = getResources().getStringArray(R.array.read_scan_qr);
 
-                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this);
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(
+                        MainActivity.this);
                 builder.setTitle(R.string.scan_or_read);
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
@@ -205,9 +206,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mBottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem(R.string.select_mode, android.R.drawable.ic_menu_slideshow, android.R.color.white);
-        AHBottomNavigationItem item2 = new AHBottomNavigationItem(R.string.scan, android.R.drawable.ic_menu_camera, android.R.color.white);
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem(R.string.detect, android.R.drawable.ic_menu_zoom, android.R.color.white);
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem(R.string.select_mode,
+                android.R.drawable.ic_menu_slideshow, android.R.color.white);
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem(R.string.scan, android.R.drawable.ic_menu_camera,
+                android.R.color.white);
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem(R.string.detect, android.R.drawable.ic_menu_zoom,
+                android.R.color.white);
 
         mBottomNavigation.addItem(item1);
         mBottomNavigation.addItem(item2);
@@ -225,7 +229,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onTabSelected(int position, boolean wasSelected) {
                 // Do something cool here...
-//                Toast.makeText(MainActivity.this, "position: " + position, Toast.LENGTH_SHORT).show();
+                // Toast.makeText(MainActivity.this, "position: " + position,
+                // Toast.LENGTH_SHORT).show();
                 switch (position) {
                     case 0:
                         showListDialog();
@@ -282,13 +287,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, _(R.string.back_to_exit), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, str(R.string.back_to_exit), Toast.LENGTH_SHORT).show();
 
         new Handler().postDelayed(new Runnable() {
 
             @Override
             public void run() {
-                doubleBackToExitPressedOnce=false;
+                doubleBackToExitPressedOnce = false;
             }
         }, 2000);
     }
@@ -334,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.add_txt) {
             if (mConverting) {
-                Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show();
                 return true;
             }
 
@@ -351,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.convert_qr) {
             if (mConverting) {
-                Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show();
                 return true;
             }
 
@@ -360,22 +365,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             new AlertDialog.Builder(this)
-                .setTitle(_(R.string.color_or_black))
-                .setMessage(_(R.string.colorful_msg))
-                .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.cancel();
-                        chooseColor();
-                    }
-                })
-                .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.cancel();
-                        startConvert(false, Color.BLACK);
-                    }
-                })
-                .create()
-                .show();
+                    .setTitle(str(R.string.color_or_black))
+                    .setMessage(str(R.string.colorful_msg))
+                    .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.cancel();
+                            chooseColor();
+                        }
+                    })
+                    .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.cancel();
+                            startConvert(false, Color.BLACK);
+                        }
+                    })
+                    .create()
+                    .show();
 
         }
 
@@ -398,7 +403,7 @@ public class MainActivity extends AppCompatActivity {
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 shareIntent.setType("image/png");
                 shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-                startActivity(Intent.createChooser(shareIntent, _(R.string.share_via)));
+                startActivity(Intent.createChooser(shareIntent, str(R.string.share_via)));
             }
         }
 
@@ -442,8 +447,13 @@ public class MainActivity extends AppCompatActivity {
             shareQr.mkdirs();
         }
 
-        File newFile = mGif ? new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".gif")
-                : new File(shareQr, "Qart_"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "") + ".png");
+        File newFile = mGif
+                ? new File(shareQr,
+                        "Qart_" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "")
+                                + ".gif")
+                : new File(shareQr,
+                        "Qart_" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "")
+                                + ".png");
 
         if (mGif) {
             try {
@@ -455,7 +465,7 @@ public class MainActivity extends AppCompatActivity {
             Util.saveBitmap(mQRBitmap, newFile.toString());
         }
 
-        Toast.makeText(this, _(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, str(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
         Uri uri = Uri.fromFile(newFile);
         Intent scannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
         sendBroadcast(scannerIntent);
@@ -485,7 +495,7 @@ public class MainActivity extends AppCompatActivity {
                 .with(MainActivity.this)
                 .setTitle(R.string.choose_color)
                 .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
-                .initialColor(mColor)  //default blue
+                .initialColor(mColor) // default blue
                 .density(12)
                 .lightnessSliderOnly()
                 .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
@@ -493,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
                         if (selectedColor == Color.WHITE) {
                             Toast.makeText(MainActivity.this, R.string.select_white, Toast.LENGTH_LONG).show();
-                        } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD){
+                        } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD) {
                             Toast.makeText(MainActivity.this, R.string.select_light, Toast.LENGTH_LONG).show();
                         }
                         mColor = selectedColor;
@@ -513,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void pickImage(int request) {
         if (mConverting) {
-            Toast.makeText(this, _(R.string.converting), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show();
             return;
         }
         if (isStoragePermissionGranted(request)) {
@@ -537,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
         }
         new AsyncTask<Void, Void, Void>() {
             @Override
-            protected Void doInBackground( Void... voids ) {
+            protected Void doInBackground(Void... voids) {
                 if (mGif) {
                     QRGifArray = CuteR.ProductGIF(qrText, gifArray, colorful, color);
                     shareQr = new File(getExternalCacheDir(), "Pictures");
@@ -573,7 +583,8 @@ public class MainActivity extends AppCompatActivity {
                             mQRBitmap = CuteR.ProductLogo(mCropImage, qrText, colorful, color);
                             break;
                         case EMBED_MODE:
-                            mQRBitmap = CuteR.ProductEmbed(qrText, mCropImage, colorful, color, mCropSize.x, mCropSize.y, mOriginBitmap);
+                            mQRBitmap = CuteR.ProductEmbed(qrText, mCropImage, colorful, color, mCropSize.x,
+                                    mCropSize.y, mOriginBitmap);
                             break;
                         default:
                             break;
@@ -582,6 +593,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return null;
             }
+
             @Override
             protected void onPostExecute(Void post) {
                 super.onPostExecute(post);
@@ -592,7 +604,7 @@ public class MainActivity extends AppCompatActivity {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-//                    Toast.makeText(MainActivity.this, "Saved.", Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(MainActivity.this, "Saved.", Toast.LENGTH_SHORT).show();
                 } else {
                     pickPhoto.setImageBitmap(mQRBitmap);
                 }
@@ -605,12 +617,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 mConverting = false;
             }
+
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
                 mProgressBar.setVisibility(View.VISIBLE);
                 if (mGif) {
-//                    pickPhoto.setImageBitmap(mOriginBitmap);
+                    // pickPhoto.setImageBitmap(mOriginBitmap);
                     mCropSize = mCropSize == null ? pickPhoto.getCroppedSize(mOriginBitmap) : mCropSize;
                     gifArray = new Bitmap[mGifDrawable.getNumberOfFrames()];
                     for (int i = 0; i < gifArray.length; i++) {
@@ -632,9 +645,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "startDecode");
         new AsyncTask<Void, Void, Result>() {
             @Override
-            protected Result doInBackground(Void... voids ) {
+            protected Result doInBackground(Void... voids) {
                 return CuteR.decodeQRImage(bitmap);
             }
+
             @Override
             protected void onPostExecute(Result post) {
                 super.onPostExecute(post);
@@ -655,6 +669,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, R.string.cannot_detect_qr, Toast.LENGTH_LONG).show();
                 }
             }
+
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
@@ -673,19 +688,19 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
-//                    pickPhoto.setImageURI(data.getData());
+                    // pickPhoto.setImageURI(data.getData());
                     Log.d(TAG, "pick image URI: " + data.getData());
                     if (mGifDrawable != null) {
                         mGifDrawable.recycle();
                     }
 
                     try {
-//                        String path = getRealPathFromURI(this, data.getData());
+                        // String path = getRealPathFromURI(this, data.getData());
                         String mimeType = getContentResolver().getType(data.getData());
                         Log.d(TAG, "mime type: " + mimeType);
                         if (mimeType != null && mimeType.equals("image/gif")) {
                             if (mCurrentMode != PICTURE_MODE) {
-                                Toast.makeText(this, _(R.string.gif_picture_only), Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, str(R.string.gif_picture_only), Toast.LENGTH_LONG).show();
                                 return;
                             }
                             mGif = true;
@@ -699,26 +714,26 @@ public class MainActivity extends AppCompatActivity {
                             convertOrientation(mOriginBitmap, data.getData());
                             pickPhoto.setImageBitmap(mOriginBitmap);
                         }
-                    }catch (IOException e) {
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-
-//                    String path = getRealPathFromURI(this, data.getData());
-//                    convertOrientation(mOriginBitmap, data.getData());
-//                    pickPhoto.setImageBitmap(mOriginBitmap);
-//                    GifAnimationDrawable gif = null;
-//                    try {
-//                        gif = new GifAnimationDrawable(new File(getRealPathFromURI(this, data.getData())), this);
-//                        gif.setOneShot(false);
-//                    } catch (Resources.NotFoundException e) {
-//                        e.printStackTrace();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    pickPhoto.setImageDrawable(gif);
-//                    gif.setVisible(true, true);
+                    // String path = getRealPathFromURI(this, data.getData());
+                    // convertOrientation(mOriginBitmap, data.getData());
+                    // pickPhoto.setImageBitmap(mOriginBitmap);
+                    // GifAnimationDrawable gif = null;
+                    // try {
+                    // gif = new GifAnimationDrawable(new File(getRealPathFromURI(this,
+                    // data.getData())), this);
+                    // gif.setOneShot(false);
+                    // } catch (Resources.NotFoundException e) {
+                    // e.printStackTrace();
+                    // } catch (IOException e) {
+                    // e.printStackTrace();
+                    // }
+                    //
+                    // pickPhoto.setImageDrawable(gif);
+                    // gif.setVisible(true, true);
                     mPickImage = true;
                     mCropSize = null;
                     mCropImage = null;
@@ -731,7 +746,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case REQUEST_SEND_QR_TEXT:
                 if (resultCode == RESULT_OK) {
-                    if(data.hasExtra("import")) {
+                    if (data.hasExtra("import")) {
                         Log.d(TAG, "REQUEST_SEND_QR_TEXT");
                         final String text = data.getExtras().getString("import");
                         mEditTextView.postDelayed(new Runnable() {
@@ -771,11 +786,12 @@ public class MainActivity extends AppCompatActivity {
 
             default:
                 IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-                if(result != null) {
-                    if(result.getContents() == null) {
-                        Toast.makeText(this, _(R.string.cancel_scan), Toast.LENGTH_LONG).show();
+                if (result != null) {
+                    if (result.getContents() == null) {
+                        Toast.makeText(this, str(R.string.cancel_scan), Toast.LENGTH_LONG).show();
                     } else {
-//                        Toast.makeText(this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
+                        // Toast.makeText(this, "Scanned: " + result.getContents(),
+                        // Toast.LENGTH_LONG).show();
                         if (mScan) {
                             launchQRResultActivity(result.getContents());
                         } else {
@@ -866,34 +882,36 @@ public class MainActivity extends AppCompatActivity {
     private TextWatcher TextWatcherNewInstance() {
         return new TextWatcher() {
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
+
             @Override
             public void beforeTextChanged(CharSequence s, int start,
-                                          int count, int after) {
+                    int count, int after) {
             }
+
             @Override
             public void onTextChanged(CharSequence s, int start,
-                                      int before, int count) {
+                    int before, int count) {
                 String text = mEditTextView.getText().toString().trim();
                 if (text != null && text.isEmpty() == false) {
                     setTextButton.setClickable(true);
                     setTextButton.setTextColor(ContextCompat.getColor(MainActivity.this, android.R.color.black));
                 } else {
                     setTextButton.setClickable(false);
-                    setTextButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.reply_button_text_disable));
+                    setTextButton
+                            .setTextColor(ContextCompat.getColor(MainActivity.this, R.color.reply_button_text_disable));
                 }
 
             }
         };
     }
 
-
-
     public String getRealPathFromURI(Context context, Uri contentUri) {
         Cursor cursor = null;
         try {
             String[] proj = { MediaStore.Images.Media.DATA };
-            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
             return cursor.getString(column_index);
@@ -905,36 +923,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void convertOrientation(Bitmap bitmap, Uri imageUri) {
-//        int orientation = ExifInterface.ORIENTATION_NORMAL;
-//        try {
-//            ExifInterface ei = new ExifInterface(photoPath);
-//            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-//        } catch (IOException ex) {
-//            Log.e(TAG, "can not retrieve exif");
-//        }
+        // int orientation = ExifInterface.ORIENTATION_NORMAL;
+        // try {
+        // ExifInterface ei = new ExifInterface(photoPath);
+        // orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+        // ExifInterface.ORIENTATION_UNDEFINED);
+        // } catch (IOException ex) {
+        // Log.e(TAG, "can not retrieve exif");
+        // }
 
-        String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
-        Cursor cur = getContentResolver().query(imageUri,  orientationColumn, null, null, null);
+        String[] orientationColumn = { MediaStore.Images.Media.ORIENTATION };
+        Cursor cur = getContentResolver().query(imageUri, orientationColumn, null, null, null);
         int orientation = 0;
         if (cur != null && cur.moveToFirst()) {
             orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
             mOriginBitmap = CuteR.rotateImage(bitmap, orientation);
         }
-//
-//        switch(orientation) {
-//            case ExifInterface.ORIENTATION_ROTATE_90:
-//                mOriginBitmap = CuteR.rotateImage(bitmap, 90);
-//                break;
-//            case ExifInterface.ORIENTATION_ROTATE_180:
-//                mOriginBitmap = CuteR.rotateImage(bitmap, 180);
-//                break;
-//            case ExifInterface.ORIENTATION_ROTATE_270:
-//                mOriginBitmap = CuteR.rotateImage(bitmap, 270);
-//                break;
-//            case ExifInterface.ORIENTATION_NORMAL:
-//            default:
-//                break;
-//        }
+        //
+        // switch(orientation) {
+        // case ExifInterface.ORIENTATION_ROTATE_90:
+        // mOriginBitmap = CuteR.rotateImage(bitmap, 90);
+        // break;
+        // case ExifInterface.ORIENTATION_ROTATE_180:
+        // mOriginBitmap = CuteR.rotateImage(bitmap, 180);
+        // break;
+        // case ExifInterface.ORIENTATION_ROTATE_270:
+        // mOriginBitmap = CuteR.rotateImage(bitmap, 270);
+        // break;
+        // case ExifInterface.ORIENTATION_NORMAL:
+        // default:
+        // break;
+        // }
     }
 
     public Bitmap getBitmapFromUri(Uri imageUri) {
@@ -943,7 +962,8 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bitmap;
         try {
             bitmap = android.provider.MediaStore.Images.Media.getBitmap(cr, imageUri);
-            float scale = Math.min((float) 1.0 * MAX_INPUT_BITMAP_WIDTH / bitmap.getWidth(), (float) 1.0 * MAX_INPUT_BITMAP_HEIGHT / bitmap.getHeight());
+            float scale = Math.min((float) 1.0 * MAX_INPUT_BITMAP_WIDTH / bitmap.getWidth(),
+                    (float) 1.0 * MAX_INPUT_BITMAP_HEIGHT / bitmap.getHeight());
             if (scale < 1) {
                 bitmap = CuteR.getResizedBitmap(bitmap, scale, scale);
             }
@@ -961,7 +981,7 @@ public class MainActivity extends AppCompatActivity {
 
         Bitmap checkTextBitmap = CuteR.ProductNormal(txt, false, Color.BLACK);
         if (checkTextBitmap == null) {
-            Toast.makeText(this, _(R.string.text_too_long), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, str(R.string.text_too_long), Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -977,13 +997,13 @@ public class MainActivity extends AppCompatActivity {
         editor.commit();
     }
 
-    private String _(int id) {
+    private String str(int id) {
         return getResources().getString(id);
     }
 
     private void openAbout() {
         WebView web = new WebView(this);
-        web.loadUrl(_(R.string.about_page));
+        web.loadUrl(str(R.string.about_page));
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -992,14 +1012,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         new AlertDialog.Builder(this)
-                .setTitle(String.format(_(R.string.about_info_title), getMyVersion(this)))
+                .setTitle(String.format(str(R.string.about_info_title), getMyVersion(this)))
                 .setPositiveButton(R.string.about_info_share, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Intent intent = new Intent(android.content.Intent.ACTION_SEND);
                         intent.setType("text/plain");
-                        intent.putExtra(Intent.EXTRA_SUBJECT, _(R.string.share_subject));
-                        intent.putExtra(Intent.EXTRA_TEXT, _(R.string.share_content));
-                        startActivity(Intent.createChooser(intent, _(R.string.share_channel)));
+                        intent.putExtra(Intent.EXTRA_SUBJECT, str(R.string.share_subject));
+                        intent.putExtra(Intent.EXTRA_TEXT, str(R.string.share_content));
+                        startActivity(Intent.createChooser(intent, str(R.string.share_channel)));
                     }
                 })
                 .setNegativeButton(R.string.about_info_close, new DialogInterface.OnClickListener() {
@@ -1026,20 +1046,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public  boolean isStoragePermissionGranted(int request) {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG,"Permission is granted");
+    public boolean isStoragePermissionGranted(int request) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED ||
+                    (Build.VERSION.SDK_INT >= 34 && ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) == PackageManager.PERMISSION_GRANTED)) {
+                Log.v(TAG, "Permission is granted");
                 return true;
             } else {
-                Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, request);
+                Log.v(TAG, "Permission is revoked");
+                if (Build.VERSION.SDK_INT >= 34) {
+                    ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED }, request);
+                } else {
+                    ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_MEDIA_IMAGES },
+                            request);
+                }
                 return false;
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG,"Permission is granted");
+        } else if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG, "Permission is granted");
+                return true;
+            } else {
+                Log.v(TAG, "Permission is revoked");
+                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                        request);
+                return false;
+            }
+        } else { // permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG, "Permission is granted");
             return true;
         }
     }
@@ -1047,8 +1085,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
-            Log.v(TAG,"Permission: "+ permissions[0] + "was "+ grantResults[0]);
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
             if (requestCode == REQUEST_SAVE_FILE) {
                 saveQRImage();
             } else {
@@ -1064,19 +1102,20 @@ public class MainActivity extends AppCompatActivity {
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 MainActivity.this,
                 android.R.layout.select_dialog_singlechoice);
-        final String[] modes = new String[]{_(R.string.normal_mode), _(R.string.picture_mode), _(R.string.logo_mode), _(R.string.embed_mode)};
+        final String[] modes = new String[] { str(R.string.normal_mode), str(R.string.picture_mode), str(R.string.logo_mode),
+                str(R.string.embed_mode) };
         for (String mode : modes) {
             arrayAdapter.add(mode);
         }
         builderSingle.setSingleChoiceItems(modes, mCurrentMode, null);
-//        builderSingle.setNegativeButton(
-//                "cancel",
-//                new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                    }
-//                });
+        // builderSingle.setNegativeButton(
+        // "cancel",
+        // new DialogInterface.OnClickListener() {
+        // @Override
+        // public void onClick(DialogInterface dialog, int which) {
+        // dialog.dismiss();
+        // }
+        // });
 
         builderSingle.setAdapter(
                 arrayAdapter,
