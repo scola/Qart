@@ -1,937 +1,915 @@
-package io.github.scola.qart;
+package io.github.scola.qart
 
-import android.Manifest;
-import android.app.AlertDialog;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
-import android.provider.MediaStore;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.animation.AccelerateInterpolator;
-import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.Toast;
+import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.Window
+import android.view.animation.AccelerateInterpolator
+import android.view.inputmethod.InputMethodManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
+import com.edmodo.cropper.CropImageView
+import com.flask.colorpicker.ColorPickerView
+import com.flask.colorpicker.builder.ColorPickerDialogBuilder
+import com.google.zxing.integration.android.IntentIntegrator
+import fr.castorflex.android.smoothprogressbar.SmoothProgressDrawable
+import io.github.scola.cuteqr.CuteR
+import io.github.scola.gif.AnimatedGifEncoder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import pl.droidsonroids.gif.GifDrawable
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
 
-import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
-import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
-import com.edmodo.cropper.CropImageView;
-import com.flask.colorpicker.ColorPickerView;
-import com.flask.colorpicker.builder.ColorPickerClickListener;
-import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
-import com.google.zxing.Result;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
+class MainActivity : AppCompatActivity() {
+    private val TAG = "MainActivity"
+    private val REQUEST_PICK_IMAGE = 1
+    private val REQUEST_SEND_QR_TEXT = 2
+    private val REQUEST_PICK_QR_IMAGE = 3
+    private val REQUEST_DETECT_QR_IMAGE = 4
+    private val REQUEST_SAVE_FILE = 5
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+    private val PREF_TEXT_FOR_QR = "text"
+    private val PREF_MODE_FOR_QR = "mode"
 
-import fr.castorflex.android.smoothprogressbar.SmoothProgressDrawable;
-import io.github.scola.cuteqr.CuteR;
-import io.github.scola.gif.AnimatedGifEncoder;
-import pl.droidsonroids.gif.GifDrawable;
+    private val MAX_INPUT_BITMAP_WIDTH = 720
+    private val MAX_INPUT_BITMAP_HEIGHT = 1280
 
-public class MainActivity extends AppCompatActivity {
-    private final static String TAG = "MainActivity";
-    private final static int REQUEST_PICK_IMAGE = 1;
-    private final static int REQUEST_SEND_QR_TEXT = 2;
-    private final static int REQUEST_PICK_QR_IMAGE = 3;
-    private final static int REQUEST_DETECT_QR_IMAGE = 4;
-    private final static int REQUEST_SAVE_FILE = 5;
+    private val COLOR_BRIGHTNESS_THRESHOLD = 0x7f
 
-    private final static String PREF_TEXT_FOR_QR = "text";
-    private final static String PREF_MODE_FOR_QR = "mode";
-    public final static String PREF_GUIDE_VERSION = "version";
+    private var mConverting = false
 
-    private final static int MAX_INPUT_BITMAP_WIDTH = 720;
-    private final static int MAX_INPUT_BITMAP_HEIGHT = 1280;
+    private lateinit var pickPhoto: CropImageView
 
-    private final static int COLOR_BRIGHTNESS_THRESHOLD = 0x7f;
+    private var convertMenu: MenuItem? = null
+    private var addTextMenu: MenuItem? = null
 
-    private boolean mConverting;
+    private var shareMenu: MenuItem? = null
+    private var saveMenu: MenuItem? = null
+    private var revertMenu: MenuItem? = null
+    private var galleryMenu: MenuItem? = null
+    private var colorMenu: MenuItem? = null
+    private var modeMenu: MenuItem? = null
+    private var scanMenu: MenuItem? = null
+    private var detectMenu: MenuItem? = null
 
-    private CropImageView pickPhoto;
+    private lateinit var mBottomNavigation: AHBottomNavigation
 
-    private MenuItem convertMenu;
-    private MenuItem addTextMenu;
+    private lateinit var editTextView: LinearLayout
 
-    private MenuItem shareMenu;
-    private MenuItem saveMenu;
-    private MenuItem revertMenu;
-    private MenuItem galleryMenu;
-    private MenuItem colorMenu;
-    private MenuItem modeMenu;
-    private MenuItem scanMenu;
-    private MenuItem detectMenu;
+    private lateinit var mEditTextView: EditText
+    private lateinit var qrButton: ImageView
+    private lateinit var setTextButton: Button
 
-    AHBottomNavigation mBottomNavigation;
+    private var qrText: String? = null
+    private var mOriginBitmap: Bitmap? = null
+    private var mQRBitmap: Bitmap? = null
+    private var mCropImage: Bitmap? = null
 
-    private LinearLayout editTextView;
+    private var shareQr: File? = null
+    private var gifQr: File? = null
 
-    private EditText mEditTextView;
-    private ImageView qrButton;
-    private Button setTextButton;
+    private var doubleBackToExitPressedOnce = false
 
-    private String qrText;
-    private Bitmap mOriginBitmap;
-    private Bitmap mQRBitmap;
-    private Bitmap mCropImage;
+    private lateinit var mProgressBar: ProgressBar
 
-    private File shareQr;
-    private File gifQr;
+    private var mGif = false
+    private var mGifDrawable: GifDrawable? = null
 
-    private boolean doubleBackToExitPressedOnce;
+    private lateinit var gifArray: Array<Bitmap>
+    private lateinit var QRGifArray: Array<Bitmap>
 
-    private ProgressBar mProgressBar;
+    private var mCurrentMode = -1
 
-    private boolean mGif;
-    private GifDrawable mGifDrawable;
+    private val NORMAL_MODE = 0
+    private val PICTURE_MODE = 1
+    private val LOGO_MODE = 2
+    private val EMBED_MODE = 3
 
-    private Bitmap[] gifArray;
-    private Bitmap[] QRGifArray;
+    private var mCropSize: CropImageView.CropPosSize? = null
+    private var mPickImage = false
+    private var mScan = false
 
-    private int mCurrentMode = -1;
+    private var mColor = Color.rgb(0x28, 0x32, 0x60)
+    private val modeGuide = intArrayOf(
+        R.drawable.guide_img,
+        R.drawable.guide_img_logo,
+        R.drawable.guide_img_embed
+    )
 
-    private static final int NORMAL_MODE = 0;
-    private static final int PICTURE_MODE = 1;
-    private static final int LOGO_MODE = 2;
-    private static final int EMBED_MODE = 3;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS)
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        pickPhoto = findViewById<View>(R.id.pick_img) as CropImageView
+        editTextView = findViewById<View>(R.id.text_group) as LinearLayout
+        mEditTextView = findViewById<View>(R.id.edit_text) as EditText
+        qrButton = findViewById<View>(R.id.emotion_button) as ImageView
+        setTextButton = findViewById<View>(R.id.btn_send) as Button
 
-    private CropImageView.CropPosSize mCropSize;
-    private boolean mPickImage;
-    private boolean mScan;
+        mProgressBar = findViewById<View>(R.id.progressbar) as ProgressBar
+        mProgressBar.indeterminateDrawable = SmoothProgressDrawable.Builder(this).interpolator(
+            AccelerateInterpolator()
+        ).build()
+        mProgressBar.visibility = View.INVISIBLE
 
-    private int mColor = Color.rgb(0x28, 0x32, 0x60);
-    final private int[] modeGuide = { R.drawable.guide_img, R.drawable.guide_img_logo, R.drawable.guide_img_embed };
+        mEditTextView.addTextChangedListener(TextWatcherNewInstance())
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        pickPhoto = (CropImageView) findViewById(R.id.pick_img);
-        editTextView = (LinearLayout) findViewById(R.id.text_group);
-        mEditTextView = (EditText) findViewById(R.id.edit_text);
-        qrButton = (ImageView) findViewById(R.id.emotion_button);
-        setTextButton = (Button) findViewById(R.id.btn_send);
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        qrText = sharedPref.getString(PREF_TEXT_FOR_QR, str(R.string.default_qr_text))
 
-        mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
-        mProgressBar.setIndeterminateDrawable(
-                new SmoothProgressDrawable.Builder(this).interpolator(new AccelerateInterpolator()).build());
-        mProgressBar.setVisibility(View.INVISIBLE);
+        pickPhoto.setFixedAspectRatio(true)
 
-        mEditTextView.addTextChangedListener(TextWatcherNewInstance());
-
-        final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        qrText = sharedPref.getString(PREF_TEXT_FOR_QR, str(R.string.default_qr_text));
-
-        pickPhoto.setFixedAspectRatio(true);
-
-        setTextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String txt = mEditTextView.getText().toString().trim();
-                if (txt.isEmpty() == false) {
-                    saveQrText(txt);
-                    View view = MainActivity.this.getCurrentFocus();
-                    if (view != null) {
-                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    }
-                    editTextView.setVisibility(View.INVISIBLE);
+        setTextButton.setOnClickListener {
+            val txt = mEditTextView.text.toString().trim { it <= ' ' }
+            if (!txt.isEmpty()) {
+                saveQrText(txt)
+                val view = this@MainActivity.currentFocus
+                if (view != null) {
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(view.windowToken, 0)
                 }
+                editTextView.visibility = View.INVISIBLE
             }
-        });
+        }
 
-        qrButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] items = getResources().getStringArray(R.array.read_scan_qr);
+        qrButton.setOnClickListener {
+            val items = resources.getStringArray(R.array.read_scan_qr)
 
-                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(
-                        MainActivity.this);
-                builder.setTitle(R.string.scan_or_read);
-                builder.setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        switch (i) {
-                            case 0:
-                                mScan = false;
-                                new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
-                                break;
-                            case 1:
-                                pickImage(REQUEST_PICK_QR_IMAGE);
-                                break;
-                            default:
-                                break;
-                        }
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder.show();
+            val builder = androidx.appcompat.app.AlertDialog.Builder(
+                this@MainActivity
+            )
+            builder.setTitle(R.string.scan_or_read)
+            builder.setItems(items) { dialogInterface, i ->
+                switchScanOrRead(i)
+                dialogInterface.dismiss()
             }
-        });
+            builder.show()
+        }
 
-        mBottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem(R.string.select_mode,
-                android.R.drawable.ic_menu_slideshow, android.R.color.white);
-        AHBottomNavigationItem item2 = new AHBottomNavigationItem(R.string.scan, android.R.drawable.ic_menu_camera,
-                android.R.color.white);
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem(R.string.detect, android.R.drawable.ic_menu_zoom,
-                android.R.color.white);
+        mBottomNavigation = findViewById<View>(R.id.bottom_navigation) as AHBottomNavigation
+        val item1 = AHBottomNavigationItem(
+            R.string.select_mode,
+            android.R.drawable.ic_menu_slideshow, android.R.color.white
+        )
+        val item2 = AHBottomNavigationItem(
+            R.string.scan, android.R.drawable.ic_menu_camera,
+            android.R.color.white
+        )
+        val item3 = AHBottomNavigationItem(
+            R.string.detect, android.R.drawable.ic_menu_zoom,
+            android.R.color.white
+        )
 
-        mBottomNavigation.addItem(item1);
-        mBottomNavigation.addItem(item2);
-        mBottomNavigation.addItem(item3);
+        mBottomNavigation.addItem(item1)
+        mBottomNavigation.addItem(item2)
+        mBottomNavigation.addItem(item3)
 
-        mBottomNavigation.setDefaultBackgroundColor(ContextCompat.getColor(this, android.R.color.black));
+        mBottomNavigation.defaultBackgroundColor = ContextCompat.getColor(this, android.R.color.black)
 
         // Change colors
-        mBottomNavigation.setAccentColor(Color.WHITE);
-        mBottomNavigation.setInactiveColor(Color.LTGRAY);
+        mBottomNavigation.accentColor = Color.WHITE
+        mBottomNavigation.inactiveColor = Color.LTGRAY
 
-        mBottomNavigation.setCurrentItem(1);
+        mBottomNavigation.currentItem = 1
 
-        mBottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
-            @Override
-            public boolean onTabSelected(int position, boolean wasSelected) {
-                // Do something cool here...
-                // Toast.makeText(MainActivity.this, "position: " + position,
-                // Toast.LENGTH_SHORT).show();
-                switch (position) {
-                    case 0:
-                        showListDialog();
-                        break;
-                    case 1:
-                        mScan = true;
-                        new IntentIntegrator(MainActivity.this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
-                        break;
-                    case 2:
-                        pickImage(REQUEST_DETECT_QR_IMAGE);
-                        break;
-                    default:
-                        break;
+        mBottomNavigation.setOnTabSelectedListener { position, wasSelected ->
+            // Do something cool here...
+            // Toast.makeText(MainActivity.this, "position: " + position,
+            // Toast.LENGTH_SHORT).show();
+            when (position) {
+                0 -> showListDialog()
+                1 -> {
+                    mScan = true
+                    IntentIntegrator(this@MainActivity).initiateScan(IntentIntegrator.QR_CODE_TYPES)
                 }
-                return true;
-            }
-        });
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        final SharedPreferences sharedPref = getSharedPreferences(PREF_GUIDE_VERSION, Context.MODE_PRIVATE);
-        String version = sharedPref.getString(PREF_GUIDE_VERSION, "");
-        if (version.isEmpty() || version.split("\\.")[0].equals(getMyVersion(this).split("\\.")[0]) == false) {
-            Intent i = new Intent(this, IntroActivity.class);
-            startActivity(i);
+                2 -> pickImage(REQUEST_DETECT_QR_IMAGE)
+                else -> {
+                }
+            }
+            true
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        if (editTextView.getVisibility() == View.VISIBLE) {
-            editTextView.setVisibility(View.INVISIBLE);
-            return;
+    private fun switchScanOrRead(i: Int) {
+        when (i) {
+            0 -> {
+                mScan = false
+                IntentIntegrator(this@MainActivity).initiateScan(IntentIntegrator.QR_CODE_TYPES)
+            }
+
+            1 -> pickImage(REQUEST_PICK_QR_IMAGE)
+            else -> {
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val sharedPref = getSharedPreferences(PREF_GUIDE_VERSION, Context.MODE_PRIVATE)
+        val version = sharedPref.getString(PREF_GUIDE_VERSION, "")
+        if (version!!.isEmpty() || version.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }
+                .toTypedArray()[0] != getMyVersion(this).split("\\.".toRegex())
+                .dropLastWhile { it.isEmpty() }.toTypedArray()[0]) {
+            val i = Intent(this, IntroActivity::class.java)
+            startActivity(i)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (editTextView.visibility == View.VISIBLE) {
+            editTextView.visibility = View.INVISIBLE
+            return
         }
 
         if (mPickImage) {
             if (mGifDrawable != null) {
-                mGifDrawable.recycle();
+                mGifDrawable!!.recycle()
             }
-            mGif = false;
-            mPickImage = false;
-            int mode = mCurrentMode;
-            mCurrentMode = -1;
-            setCurrentMode(mode);
-            showNavigation();
-            return;
+            mGif = false
+            mPickImage = false
+            val mode = mCurrentMode
+            mCurrentMode = -1
+            setCurrentMode(mode)
+            showNavigation()
+            return
         }
 
         if (doubleBackToExitPressedOnce) {
-            super.onBackPressed();
-            return;
+            super.onBackPressed()
+            return
         }
 
-        this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, str(R.string.back_to_exit), Toast.LENGTH_SHORT).show();
+        this.doubleBackToExitPressedOnce = true
+        Toast.makeText(this, str(R.string.back_to_exit), Toast.LENGTH_SHORT).show()
 
-        new Handler().postDelayed(new Runnable() {
-
-            @Override
-            public void run() {
-                doubleBackToExitPressedOnce = false;
-            }
-        }, 2000);
+        Handler(Looper.getMainLooper()).postDelayed({ doubleBackToExitPressedOnce = false }, 2000)
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        convertMenu = menu.findItem(R.id.convert_qr);
-        addTextMenu = menu.findItem(R.id.add_txt);
+        menuInflater.inflate(R.menu.menu_main, menu)
+        convertMenu = menu.findItem(R.id.convert_qr)
+        addTextMenu = menu.findItem(R.id.add_txt)
 
-        shareMenu = menu.findItem(R.id.share_qr);
-        saveMenu = menu.findItem(R.id.save_qr);
-        galleryMenu = menu.findItem(R.id.launch_gallery);
-        revertMenu = menu.findItem(R.id.revert_qr);
-        colorMenu = menu.findItem(R.id.change_color);
-        modeMenu = menu.findItem(R.id.select_mode);
-        scanMenu = menu.findItem(R.id.scan_qr);
-        detectMenu = menu.findItem(R.id.detect_qr);
+        shareMenu = menu.findItem(R.id.share_qr)
+        saveMenu = menu.findItem(R.id.save_qr)
+        galleryMenu = menu.findItem(R.id.launch_gallery)
+        revertMenu = menu.findItem(R.id.revert_qr)
+        colorMenu = menu.findItem(R.id.change_color)
+        modeMenu = menu.findItem(R.id.select_mode)
+        scanMenu = menu.findItem(R.id.scan_qr)
+        detectMenu = menu.findItem(R.id.detect_qr)
 
-        hideQrMenu();
-        hideSaveMenu();
+        hideQrMenu()
+        hideSaveMenu()
 
-        final SharedPreferences modePref = getPreferences(Context.MODE_PRIVATE);
-        int mode = modePref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE);
-        setCurrentMode(mode);
+        val modePref = getPreferences(Context.MODE_PRIVATE)
+        val mode = modePref.getInt(PREF_MODE_FOR_QR, PICTURE_MODE)
+        setCurrentMode(mode)
 
-        showNavigation();
+        showNavigation()
 
-        return true;
+        return true
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        val id = item.itemId
 
         if (id == R.id.launch_gallery) {
-            pickImage(REQUEST_PICK_IMAGE);
+            pickImage(REQUEST_PICK_IMAGE)
         }
 
         if (id == R.id.add_txt) {
             if (mConverting) {
-                Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show();
-                return true;
+                Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show()
+                return true
             }
 
-            if (editTextView.getVisibility() == View.INVISIBLE) {
-                editTextView.setVisibility(View.VISIBLE);
-                if (qrText != null && qrText.isEmpty() == false) {
-                    mEditTextView.setText(qrText);
-                    mEditTextView.setSelection(qrText.length());
+            if (editTextView.visibility == View.INVISIBLE) {
+                editTextView.visibility = View.VISIBLE
+                if (qrText != null && !qrText!!.isEmpty()) {
+                    mEditTextView.setText(qrText)
+                    mEditTextView.setSelection(qrText!!.length)
                 }
             } else {
-                editTextView.setVisibility(View.INVISIBLE);
+                editTextView.visibility = View.INVISIBLE
             }
         }
 
         if (id == R.id.convert_qr) {
             if (mConverting) {
-                Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show();
-                return true;
+                Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show()
+                return true
             }
 
-            if (editTextView.getVisibility() == View.VISIBLE) {
-                editTextView.setVisibility(View.INVISIBLE);
+            if (editTextView.visibility == View.VISIBLE) {
+                editTextView.visibility = View.INVISIBLE
             }
 
-            new AlertDialog.Builder(this)
-                    .setTitle(str(R.string.color_or_black))
-                    .setMessage(str(R.string.colorful_msg))
-                    .setPositiveButton(R.string.colorful, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                            chooseColor();
-                        }
-                    })
-                    .setNegativeButton(R.string.black_white, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                            startConvert(false, Color.BLACK);
-                        }
-                    })
-                    .create()
-                    .show();
+            AlertDialog.Builder(this)
+                .setTitle(str(R.string.color_or_black))
+                .setMessage(str(R.string.colorful_msg))
+                .setPositiveButton(R.string.colorful) { dialogInterface, i ->
+                    dialogInterface.cancel()
+                    chooseColor()
+                }
+                .setNegativeButton(R.string.black_white) { dialogInterface, i ->
+                    dialogInterface.cancel()
+                    startConvert(false, Color.BLACK)
+                }
+                .create()
+                .show()
 
         }
 
         if (id == R.id.share_qr) {
-            shareQr = new File(getAppCacheDir(), "Pictures");
-            if (shareQr.exists() == false) {
-                shareQr.mkdirs();
+            shareQr = File(appCacheDir, "Pictures")
+            if (!shareQr!!.exists()) {
+                shareQr!!.mkdirs()
             }
-            File newFile = mGif ? new File(shareQr, "qrImage.gif") : new File(shareQr, "qrImage.png");
+            val newFile =
+            if (mGif) File(shareQr!!, "qrImage.gif") else File(shareQr!!, "qrImage.png")
             if (!mGif) {
-                Util.saveBitmap(mQRBitmap, newFile.toString());
+                Util.saveBitmap(mQRBitmap!!, newFile.toString())
             }
 
-            Uri contentUri = androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".provider",
-                    newFile);
+            val contentUri = FileProvider.getUriForFile(
+                this, packageName + ".provider",
+                newFile
+            )
 
             if (contentUri != null) {
-                Log.d(TAG, "Uri: " + contentUri);
-                Intent shareIntent = new Intent();
-                shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                shareIntent.setType("image/png");
-                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-                startActivity(Intent.createChooser(shareIntent, str(R.string.share_via)));
+                Log.d(TAG, "Uri: $contentUri")
+                val shareIntent = Intent()
+                shareIntent.action = Intent.ACTION_SEND
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                shareIntent.type = "image/png"
+                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+                startActivity(Intent.createChooser(shareIntent, str(R.string.share_via)))
             }
         }
 
         if (id == R.id.save_qr) {
             if (isStoragePermissionGranted(REQUEST_SAVE_FILE)) {
-                saveQRImage();
+                saveQRImage()
             }
         }
 
         if (id == R.id.revert_qr) {
-            revertQR(true);
+            revertQR(true)
         }
 
         if (id == R.id.about_info) {
-            openAbout();
+            openAbout()
         }
 
         if (id == R.id.select_mode) {
-            showListDialog();
+            showListDialog()
         }
 
         if (id == R.id.change_color) {
-            chooseColor();
+            chooseColor()
         }
 
         if (id == R.id.scan_qr) {
-            mScan = true;
-            new IntentIntegrator(this).initiateScan(IntentIntegrator.QR_CODE_TYPES);
+            mScan = true
+            IntentIntegrator(this).initiateScan(IntentIntegrator.QR_CODE_TYPES)
         }
 
         if (id == R.id.detect_qr) {
-            pickImage(REQUEST_DETECT_QR_IMAGE);
+            pickImage(REQUEST_DETECT_QR_IMAGE)
         }
 
-        return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item)
     }
 
-    private void saveQRImage() {
-        shareQr = new File(Environment.getExternalStorageDirectory(), "Pictures");
-        if (shareQr.exists() == false) {
-            shareQr.mkdirs();
+    private fun saveQRImage() {
+        shareQr = File(Environment.getExternalStorageDirectory(), "Pictures")
+        if (!shareQr!!.exists()) {
+            shareQr!!.mkdirs()
         }
 
-        File newFile = mGif
-                ? new File(shareQr,
-                        "Qart_" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "")
-                                + ".gif")
-                : new File(shareQr,
-                        "Qart_" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replaceAll("\\W+", "")
-                                + ".png");
+        val newFile = if (mGif)
+            File(
+                shareQr,
+                "Qart_" + SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+                    .replace("\\W+".toRegex(), "")
+                        + ".gif"
+            )
+        else
+            File(
+                shareQr,
+                "Qart_" + SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+                    .replace("\\W+".toRegex(), "")
+                        + ".png"
+            )
 
         if (mGif) {
             try {
-                Util.copy(new File(getAppCacheDir(), "Pictures/qrImage.gif"), newFile);
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                Util.copy(File(appCacheDir, "Pictures/qrImage.gif"), newFile)
+            } catch (ex: IOException) {
+                ex.printStackTrace()
             }
+
         } else {
-            Util.saveBitmap(mQRBitmap, newFile.toString());
+            Util.saveBitmap(mQRBitmap!!, newFile.toString())
         }
 
-        Toast.makeText(this, str(R.string.saved) + newFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-        Uri uri = Uri.fromFile(newFile);
-        Intent scannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
-        sendBroadcast(scannerIntent);
+        Toast.makeText(this, str(R.string.saved) + newFile.absolutePath, Toast.LENGTH_LONG).show()
+        val uri = Uri.fromFile(newFile)
+        val scannerIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri)
+        sendBroadcast(scannerIntent)
     }
 
-    private void revertQR(boolean showFrame) {
-        pickPhoto.setShowSelectFrame(showFrame);
+    private fun revertQR(showFrame: Boolean) {
+        pickPhoto.setShowSelectFrame(showFrame)
         if (mGif) {
-            pickPhoto.setImageDrawable(mGifDrawable);
+            pickPhoto.setImageDrawable(mGifDrawable)
         } else {
-            pickPhoto.setImageBitmap(mOriginBitmap);
+            pickPhoto.setImageBitmap(mOriginBitmap)
         }
-        mCropSize = null;
-        mCropImage = null;
+        mCropSize = null
+        mCropImage = null
 
-        hideSaveMenu();
+        hideSaveMenu()
         if (showFrame) {
-            showQrMenu();
+            showQrMenu()
         } else {
-            hideQrMenu();
+            hideQrMenu()
         }
 
     }
 
-    private void chooseColor() {
+    private fun chooseColor() {
         ColorPickerDialogBuilder
-                .with(MainActivity.this)
-                .setTitle(R.string.choose_color)
-                .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
-                .initialColor(mColor) // default blue
-                .density(12)
-                .lightnessSliderOnly()
-                .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
-                        if (selectedColor == Color.WHITE) {
-                            Toast.makeText(MainActivity.this, R.string.select_white, Toast.LENGTH_LONG).show();
-                        } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD) {
-                            Toast.makeText(MainActivity.this, R.string.select_light, Toast.LENGTH_LONG).show();
-                        }
-                        mColor = selectedColor;
-                        startConvert(true, selectedColor);
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startConvert(true, Color.BLACK);
-                    }
-                })
-                .showColorEdit(false)
-                .build()
-                .show();
+            .with(this@MainActivity)
+            .setTitle(R.string.choose_color)
+            .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+            .initialColor(mColor) // default blue
+            .density(12)
+            .lightnessSliderOnly()
+            .setPositiveButton(
+                android.R.string.ok
+            ) { dialog, selectedColor, allColors ->
+                if (selectedColor == Color.WHITE) {
+                    Toast.makeText(this@MainActivity, R.string.select_white, Toast.LENGTH_LONG)
+                        .show()
+                } else if (Util.calculateColorGrayValue(selectedColor) > COLOR_BRIGHTNESS_THRESHOLD) {
+                    Toast.makeText(this@MainActivity, R.string.select_light, Toast.LENGTH_LONG)
+                        .show()
+                }
+                mColor = selectedColor
+                startConvert(true, selectedColor)
+            }
+            .setNegativeButton(
+                android.R.string.cancel
+            ) { dialog, which -> startConvert(true, Color.BLACK) }
+            .showColorEdit(false)
+            .build()
+            .show()
     }
 
-    private void pickImage(int request) {
+    private fun pickImage(request: Int) {
         if (mConverting) {
-            Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, str(R.string.converting), Toast.LENGTH_SHORT).show()
+            return
         }
         if (isStoragePermissionGranted(request)) {
-            launchGallery(request);
+            launchGallery(request)
         }
     }
 
-    private void launchGallery(int request) {
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, request);
+    private fun launchGallery(request: Int) {
+        val photoPickerIntent = Intent(Intent.ACTION_PICK)
+        photoPickerIntent.type = "image/*"
+        startActivityForResult(photoPickerIntent, request)
     }
 
-    private File getAppCacheDir() {
-        File cacheDir = getExternalCacheDir();
-        if (cacheDir == null) {
-            cacheDir = getCacheDir();
+    private val appCacheDir: File
+        get() {
+            var cacheDir = externalCacheDir
+            if (cacheDir == null) {
+                cacheDir = cacheDir
+            }
+            return cacheDir!!
         }
-        return cacheDir;
-    }
 
-    private void startConvert(final boolean colorful, final int color) {
-        mConverting = true;
+    private fun startConvert(colorful: Boolean, color: Int) {
+        mConverting = true
         if (mCurrentMode == NORMAL_MODE) {
-            mQRBitmap = CuteR.ProductNormal(qrText, colorful, color);
-            pickPhoto.setImageBitmap(mQRBitmap);
-            mConverting = false;
-            return;
+            mQRBitmap = CuteR.ProductNormal(qrText, colorful, color)
+            pickPhoto.setImageBitmap(mQRBitmap)
+            mConverting = false
+            return
         }
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                if (mGif) {
-                    QRGifArray = CuteR.ProductGIF(qrText, gifArray, colorful, color);
-                    shareQr = new File(getAppCacheDir(), "Pictures");
-                    if (shareQr.exists() == false) {
-                        shareQr.mkdirs();
-                    }
 
-                    gifQr = new File(shareQr, "qrImage.gif");
-                    FileOutputStream fos = null;
-                    try {
-                        fos = new FileOutputStream(gifQr);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (fos != null) {
-                        AnimatedGifEncoder gifEncoder = new AnimatedGifEncoder();
-                        gifEncoder.setRepeat(0);
-                        gifEncoder.start(fos);
-
-                        for (Bitmap bitmap : QRGifArray) {
-                            Log.d(TAG, "gifEncoder.addFrame");
-                            gifEncoder.addFrame(bitmap);
-                        }
-                        gifEncoder.finish();
-                    }
-                } else {
-                    switch (mCurrentMode) {
-                        case PICTURE_MODE:
-                            mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color);
-                            break;
-                        case LOGO_MODE:
-                            mQRBitmap = CuteR.ProductLogo(mCropImage, qrText, colorful, color);
-                            break;
-                        case EMBED_MODE:
-                            mQRBitmap = CuteR.ProductEmbed(qrText, mCropImage, colorful, color, mCropSize.x,
-                                    mCropSize.y, mOriginBitmap);
-                            break;
-                        default:
-                            break;
-                    }
-
-                }
-                return null;
+        lifecycleScope.launch {
+            onPreExecuteConvert()
+            withContext(Dispatchers.IO) {
+                doInBackgroundConvert(colorful, color)
             }
-
-            @Override
-            protected void onPostExecute(Void post) {
-                super.onPostExecute(post);
-                pickPhoto.setShowSelectFrame(false);
-                if (mGif) {
-                    try {
-                        pickPhoto.setImageDrawable(new GifDrawable(gifQr));
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    // Toast.makeText(MainActivity.this, "Saved.", Toast.LENGTH_SHORT).show();
-                } else {
-                    pickPhoto.setImageBitmap(mQRBitmap);
-                }
-
-                mProgressBar.setVisibility(View.INVISIBLE);
-                hideQrMenu();
-                showSaveMenu();
-                if (mCurrentMode == NORMAL_MODE) {
-                    hideRevertMenu();
-                }
-                mConverting = false;
-            }
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                mProgressBar.setVisibility(View.VISIBLE);
-                if (mGif) {
-                    // pickPhoto.setImageBitmap(mOriginBitmap);
-                    mCropSize = mCropSize == null ? pickPhoto.getCroppedSize(mOriginBitmap) : mCropSize;
-                    gifArray = new Bitmap[mGifDrawable.getNumberOfFrames()];
-                    for (int i = 0; i < gifArray.length; i++) {
-                        gifArray[i] = pickPhoto.getCroppedImage(mGifDrawable.seekToFrameAndGet(i), mCropSize);
-                    }
-                } else {
-                    mCropImage = mCropImage == null ? pickPhoto.getCroppedImage(mOriginBitmap) : mCropImage;
-                }
-
-                if (mCurrentMode == EMBED_MODE) {
-                    mCropSize = mCropSize == null ? pickPhoto.getCroppedSize(mOriginBitmap) : mCropSize;
-                }
-
-            }
-        }.execute();
+            onPostExecuteConvert()
+        }
     }
 
-    private void startDecode(final Bitmap bitmap, final int requestCode) {
-        Log.d(TAG, "startDecode");
-        new AsyncTask<Void, Void, Result>() {
-            @Override
-            protected Result doInBackground(Void... voids) {
-                return CuteR.decodeQRImage(bitmap);
+    private fun onPreExecuteConvert() {
+        mProgressBar.visibility = View.VISIBLE
+        if (mGif) {
+            // pickPhoto.setImageBitmap(mOriginBitmap);
+            mCropSize = if (mCropSize == null) pickPhoto.getCroppedSize(mOriginBitmap) else mCropSize
+            gifArray = Array(mGifDrawable!!.numberOfFrames) { i ->
+                pickPhoto.getCroppedImage(mGifDrawable!!.seekToFrameAndGet(i), mCropSize)
+            }
+        } else {
+            mCropImage = if (mCropImage == null) pickPhoto.getCroppedImage(mOriginBitmap) else mCropImage
+        }
+
+        if (mCurrentMode == EMBED_MODE) {
+            mCropSize = if (mCropSize == null) pickPhoto.getCroppedSize(mOriginBitmap) else mCropSize
+        }
+    }
+
+    private fun doInBackgroundConvert(colorful: Boolean, color: Int) {
+        if (mGif) {
+            QRGifArray = CuteR.ProductGIF(qrText, gifArray, colorful, color)
+            shareQr = File(appCacheDir, "Pictures")
+            if (!shareQr!!.exists()) {
+                shareQr!!.mkdirs()
             }
 
-            @Override
-            protected void onPostExecute(Result post) {
-                super.onPostExecute(post);
-                if (post != null && post.getText().trim().isEmpty() == false) {
-                    Log.d(TAG, "decode pic qr: " + post.getText());
-                    switch (requestCode) {
-                        case REQUEST_PICK_QR_IMAGE:
-                            mEditTextView.setText(post.getText().trim());
-                            break;
-                        case REQUEST_DETECT_QR_IMAGE:
-                            launchQRResultActivity(post.getText().trim());
-                            break;
-                        default:
-                            break;
-                    }
+            gifQr = File(shareQr, "qrImage.gif")
+            var fos: FileOutputStream? = null
+            try {
+                fos = FileOutputStream(gifQr)
+            } catch (e: FileNotFoundException) {
+                e.printStackTrace()
+            }
 
-                } else {
-                    Toast.makeText(MainActivity.this, R.string.cannot_detect_qr, Toast.LENGTH_LONG).show();
+            if (fos != null) {
+                val gifEncoder = AnimatedGifEncoder()
+                gifEncoder.setRepeat(0)
+                gifEncoder.start(fos)
+
+                for (bitmap in QRGifArray) {
+                    Log.d(TAG, "gifEncoder.addFrame")
+                    gifEncoder.addFrame(bitmap)
+                }
+                gifEncoder.finish()
+            }
+        } else {
+            when (mCurrentMode) {
+                PICTURE_MODE -> mQRBitmap = CuteR.Product(qrText, mCropImage, colorful, color)
+                LOGO_MODE -> mQRBitmap = CuteR.ProductLogo(mCropImage, qrText, colorful, color)
+                EMBED_MODE -> mQRBitmap = CuteR.ProductEmbed(
+                    qrText, mCropImage, colorful, color, mCropSize!!.x,
+                    mCropSize!!.y, mOriginBitmap
+                )
+
+                else -> {
                 }
             }
 
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
+        }
+    }
+
+    private fun onPostExecuteConvert() {
+        pickPhoto.setShowSelectFrame(false)
+        if (mGif) {
+            try {
+                pickPhoto.setImageDrawable(GifDrawable(gifQr!!))
+            } catch (ex: IOException) {
+                ex.printStackTrace()
             }
-        }.execute();
+
+            // Toast.makeText(MainActivity.this, "Saved.", Toast.LENGTH_SHORT).show();
+        } else {
+            pickPhoto.setImageBitmap(mQRBitmap)
+        }
+
+        mProgressBar.visibility = View.INVISIBLE
+        hideQrMenu()
+        showSaveMenu()
+        if (mCurrentMode == NORMAL_MODE) {
+            hideRevertMenu()
+        }
+        mConverting = false
     }
 
-    private void launchQRResultActivity(String qr) {
-        Intent i = new Intent(MainActivity.this, QRCodeResultActivity.class);
-        i.putExtra("TEXT", qr);
-        startActivityForResult(i, REQUEST_SEND_QR_TEXT);
+
+    private fun startDecode(bitmap: Bitmap?, requestCode: Int) {
+        Log.d(TAG, "startDecode")
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = CuteR.decodeQRImage(bitmap)
+            withContext(Dispatchers.Main) {
+                if (result != null && !result.text.trim { it <= ' ' }.isEmpty()) {
+                    Log.d(TAG, "decode pic qr: " + result.text)
+                    switchRequestCode(requestCode, result.text.trim { it <= ' ' })
+
+                } else {
+                    Toast.makeText(this@MainActivity, R.string.cannot_detect_qr, Toast.LENGTH_LONG)
+                        .show()
+                }
+            }
+        }
     }
 
-    @Override
-    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        switch (requestCode) {
-            case REQUEST_PICK_IMAGE:
-                if (resultCode == RESULT_OK) {
-                    // pickPhoto.setImageURI(data.getData());
-                    Log.d(TAG, "pick image URI: " + data.getData());
-                    if (mGifDrawable != null) {
-                        mGifDrawable.recycle();
-                    }
+    private fun switchRequestCode(requestCode: Int, text: String) {
+        when (requestCode) {
+            REQUEST_PICK_QR_IMAGE -> mEditTextView.setText(text)
+            REQUEST_DETECT_QR_IMAGE -> launchQRResultActivity(text)
+            else -> {
+            }
+        }
+    }
 
-                    try {
-                        // String path = getRealPathFromURI(this, data.getData());
-                        String mimeType = getContentResolver().getType(data.getData());
-                        Log.d(TAG, "mime type: " + mimeType);
-                        if (mimeType != null && mimeType.equals("image/gif")) {
-                            if (mCurrentMode != PICTURE_MODE) {
-                                Toast.makeText(this, str(R.string.gif_picture_only), Toast.LENGTH_LONG).show();
-                                return;
-                            }
-                            mGif = true;
-                            mGifDrawable = new GifDrawable(getContentResolver(), data.getData());
-                            pickPhoto.setImageDrawable(mGifDrawable);
-                            mOriginBitmap = mGifDrawable.seekToFrameAndGet(0);
+    private fun launchQRResultActivity(qr: String) {
+        val i = Intent(this@MainActivity, QRCodeResultActivity::class.java)
+        i.putExtra("TEXT", qr)
+        startActivityForResult(i, REQUEST_SEND_QR_TEXT)
+    }
 
-                        } else {
-                            mGif = false;
-                            mOriginBitmap = getBitmapFromUri(data.getData());
-                            convertOrientation(mOriginBitmap, data.getData());
-                            pickPhoto.setImageBitmap(mOriginBitmap);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            REQUEST_PICK_IMAGE -> if (resultCode == RESULT_OK) {
+                // pickPhoto.setImageURI(data.getData());
+                Log.d(TAG, "pick image URI: " + data!!.data)
+                if (mGifDrawable != null) {
+                    mGifDrawable!!.recycle()
+                }
 
+                try {
                     // String path = getRealPathFromURI(this, data.getData());
-                    // convertOrientation(mOriginBitmap, data.getData());
-                    // pickPhoto.setImageBitmap(mOriginBitmap);
-                    // GifAnimationDrawable gif = null;
-                    // try {
-                    // gif = new GifAnimationDrawable(new File(getRealPathFromURI(this,
-                    // data.getData())), this);
-                    // gif.setOneShot(false);
-                    // } catch (Resources.NotFoundException e) {
-                    // e.printStackTrace();
-                    // } catch (IOException e) {
-                    // e.printStackTrace();
-                    // }
-                    //
-                    // pickPhoto.setImageDrawable(gif);
-                    // gif.setVisible(true, true);
-                    mPickImage = true;
-                    mCropSize = null;
-                    mCropImage = null;
-                    pickPhoto.setShowSelectFrame(true);
-
-                    hideSaveMenu();
-                    showQrMenu();
-                    hideNavigation();
-                }
-                break;
-            case REQUEST_SEND_QR_TEXT:
-                if (resultCode == RESULT_OK) {
-                    if (data.hasExtra("import")) {
-                        Log.d(TAG, "REQUEST_SEND_QR_TEXT");
-                        final String text = data.getExtras().getString("import");
-                        mEditTextView.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                editTextView.setVisibility(View.VISIBLE);
-                                mEditTextView.setText(text);
-                                mEditTextView.setSelection(text.length());
-                            }
-                        }, 200);
-
-                    }
-                }
-                break;
-            case REQUEST_PICK_QR_IMAGE:
-            case REQUEST_DETECT_QR_IMAGE:
-                if (resultCode == RESULT_OK) {
-                    String mimeType = getContentResolver().getType(data.getData());
-                    Log.d(TAG, "mime type: " + mimeType);
-                    Bitmap qrImage = null;
-                    if (mimeType != null && mimeType.equals("image/gif")) {
-                        try {
-                            GifDrawable gifDrawable = new GifDrawable(getContentResolver(), data.getData());
-                            if (gifDrawable != null) {
-                                qrImage = gifDrawable.seekToFrameAndGet(0);
-                                gifDrawable.recycle();
-                            }
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
+                    val mimeType = contentResolver.getType(data.data!!)
+                    Log.d(TAG, "mime type: " + mimeType!!)
+                    if (mimeType != null && mimeType == "image/gif") {
+                        if (mCurrentMode != PICTURE_MODE) {
+                            Toast.makeText(this, str(R.string.gif_picture_only), Toast.LENGTH_LONG)
+                                .show()
+                            return
                         }
-                    } else {
-                        qrImage = getBitmapFromUri(data.getData());
-                    }
-                    startDecode(qrImage, requestCode);
-                }
-                break;
+                        mGif = true
+                        mGifDrawable = GifDrawable(contentResolver, data.data!!)
+                        pickPhoto.setImageDrawable(mGifDrawable)
+                        mOriginBitmap = mGifDrawable!!.seekToFrameAndGet(0)
 
-            default:
-                IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+                    } else {
+                        mGif = false
+                        mOriginBitmap = getBitmapFromUri(data.data)
+                        convertOrientation(mOriginBitmap, data.data)
+                        pickPhoto.setImageBitmap(mOriginBitmap)
+                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
+                // String path = getRealPathFromURI(this, data.getData());
+                // convertOrientation(mOriginBitmap, data.getData());
+                // pickPhoto.setImageBitmap(mOriginBitmap);
+                // GifAnimationDrawable gif = null;
+                // try {
+                // gif = new GifAnimationDrawable(new File(getRealPathFromURI(this,
+                // data.getData())), this);
+                // gif.setOneShot(false);
+                // } catch (Resources.NotFoundException e) {
+                // e.printStackTrace();
+                // } catch (IOException e) {
+                // e.printStackTrace();
+                // }
+                //
+                // pickPhoto.setImageDrawable(gif);
+                // gif.setVisible(true, true);
+                mPickImage = true
+                mCropSize = null
+                mCropImage = null
+                pickPhoto.setShowSelectFrame(true)
+
+                hideSaveMenu()
+                showQrMenu()
+                hideNavigation()
+            }
+
+            REQUEST_SEND_QR_TEXT -> if (resultCode == RESULT_OK) {
+                if (data!!.hasExtra("import")) {
+                    Log.d(TAG, "REQUEST_SEND_QR_TEXT")
+                    val text = data.extras!!.getString("import")
+                    mEditTextView.postDelayed({
+                        editTextView.visibility = View.VISIBLE
+                        mEditTextView.setText(text)
+                        mEditTextView.setSelection(text!!.length)
+                    }, 200)
+
+                }
+            }
+
+            REQUEST_PICK_QR_IMAGE, REQUEST_DETECT_QR_IMAGE -> if (resultCode == RESULT_OK) {
+                val mimeType = contentResolver.getType(data!!.data!!)
+                Log.d(TAG, "mime type: " + mimeType!!)
+                var qrImage: Bitmap? = null
+                if (mimeType != null && mimeType == "image/gif") {
+                    try {
+                        val gifDrawable = GifDrawable(contentResolver, data.data!!)
+                        if (gifDrawable != null) {
+                            qrImage = gifDrawable.seekToFrameAndGet(0)
+                            gifDrawable.recycle()
+                        }
+                    } catch (ex: IOException) {
+                        ex.printStackTrace()
+                    }
+
+                } else {
+                    qrImage = getBitmapFromUri(data.data)
+                }
+                startDecode(qrImage, requestCode)
+            }
+
+            else -> {
+                val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
                 if (result != null) {
-                    if (result.getContents() == null) {
-                        Toast.makeText(this, str(R.string.cancel_scan), Toast.LENGTH_LONG).show();
+                    if (result.contents == null) {
+                        Toast.makeText(this, str(R.string.cancel_scan), Toast.LENGTH_LONG).show()
                     } else {
                         // Toast.makeText(this, "Scanned: " + result.getContents(),
                         // Toast.LENGTH_LONG).show();
                         if (mScan) {
-                            launchQRResultActivity(result.getContents());
+                            launchQRResultActivity(result.contents)
                         } else {
-                            mEditTextView.setText(result.getContents());
+                            mEditTextView.setText(result.contents)
                         }
                     }
                 } else {
-                    super.onActivityResult(requestCode, resultCode, data);
+                    super.onActivityResult(requestCode, resultCode, data)
                 }
-                break;
+            }
         }
     }
 
-    public void hideNavigation() {
-        mBottomNavigation.setVisibility(View.INVISIBLE);
-        modeMenu.setVisible(true);
-        scanMenu.setVisible(true);
-        detectMenu.setVisible(true);
+    fun hideNavigation() {
+        mBottomNavigation.visibility = View.INVISIBLE
+        modeMenu!!.isVisible = true
+        scanMenu!!.isVisible = true
+        detectMenu!!.isVisible = true
     }
 
-    public void showNavigation() {
-        mBottomNavigation.setVisibility(View.VISIBLE);
-        modeMenu.setVisible(false);
-        scanMenu.setVisible(false);
-        detectMenu.setVisible(false);
+    fun showNavigation() {
+        mBottomNavigation.visibility = View.VISIBLE
+        modeMenu!!.isVisible = false
+        scanMenu!!.isVisible = false
+        detectMenu!!.isVisible = false
     }
 
-    public void hideGalleryMenu() {
+    fun hideGalleryMenu() {
         if (galleryMenu != null) {
-            galleryMenu.setVisible(false);
+            galleryMenu!!.isVisible = false
         }
     }
 
-    public void showGalleryMenu() {
+    fun showGalleryMenu() {
         if (galleryMenu != null) {
-            galleryMenu.setVisible(true);
+            galleryMenu!!.isVisible = true
         }
     }
 
-    public void hideRevertMenu() {
+    fun hideRevertMenu() {
         if (revertMenu != null) {
-            revertMenu.setVisible(false);
+            revertMenu!!.isVisible = false
         }
     }
 
-    public void showRevertMenu() {
+    fun showRevertMenu() {
         if (revertMenu != null) {
-            revertMenu.setVisible(true);
+            revertMenu!!.isVisible = true
         }
     }
 
-    public void hideQrMenu() {
+    fun hideQrMenu() {
         if (convertMenu != null) {
-            convertMenu.setVisible(false);
+            convertMenu!!.isVisible = false
         }
     }
 
-    public void showQrMenu() {
+    fun showQrMenu() {
         if (convertMenu != null) {
-            convertMenu.setVisible(true);
+            convertMenu!!.isVisible = true
         }
     }
 
-    public void hideSaveMenu() {
+    fun hideSaveMenu() {
         if (shareMenu != null && saveMenu != null && revertMenu != null) {
-            shareMenu.setVisible(false);
-            saveMenu.setVisible(false);
-            revertMenu.setVisible(false);
+            shareMenu!!.isVisible = false
+            saveMenu!!.isVisible = false
+            revertMenu!!.isVisible = false
         }
 
         if (colorMenu != null) {
-            colorMenu.setVisible(false);
+            colorMenu!!.isVisible = false
         }
     }
 
-    public void showSaveMenu() {
+    fun showSaveMenu() {
         if (shareMenu != null && saveMenu != null && revertMenu != null) {
-            shareMenu.setVisible(true);
-            saveMenu.setVisible(true);
-            revertMenu.setVisible(true);
+            shareMenu!!.isVisible = true
+            saveMenu!!.isVisible = true
+            revertMenu!!.isVisible = true
         }
 
         if (colorMenu != null) {
-            colorMenu.setVisible(true);
+            colorMenu!!.isVisible = true
         }
     }
 
-    private TextWatcher TextWatcherNewInstance() {
-        return new TextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
+    private fun TextWatcherNewInstance(): TextWatcher {
+        return object : TextWatcher {
+            override fun afterTextChanged(s: Editable) {}
+
+            override fun beforeTextChanged(
+                s: CharSequence, start: Int,
+                count: Int, after: Int
+            ) {
             }
 
-            @Override
-            public void beforeTextChanged(CharSequence s, int start,
-                    int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start,
-                    int before, int count) {
-                String text = mEditTextView.getText().toString().trim();
-                if (text != null && text.isEmpty() == false) {
-                    setTextButton.setClickable(true);
-                    setTextButton.setTextColor(ContextCompat.getColor(MainActivity.this, android.R.color.black));
+            override fun onTextChanged(
+                s: CharSequence, start: Int,
+                before: Int, count: Int
+            ) {
+                val text = mEditTextView.text.toString().trim { it <= ' ' }
+                if (text != null && !text.isEmpty()) {
+                    setTextButton.isClickable = true
+                    setTextButton.setTextColor(ContextCompat.getColor(this@MainActivity, android.R.color.black))
                 } else {
-                    setTextButton.setClickable(false);
+                    setTextButton.isClickable = false
                     setTextButton
-                            .setTextColor(ContextCompat.getColor(MainActivity.this, R.color.reply_button_text_disable));
+                        .setTextColor(
+                            ContextCompat.getColor(
+                                this@MainActivity,
+                                R.color.reply_button_text_disable
+                            )
+                        )
                 }
 
             }
-        };
+        }
     }
 
-    public String getRealPathFromURI(Context context, Uri contentUri) {
-        Cursor cursor = null;
+    fun getRealPathFromURI(context: Context, contentUri: Uri): String {
+        var cursor: Cursor? = null
         try {
-            String[] proj = { MediaStore.Images.Media.DATA };
-            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
+            val proj = arrayOf(MediaStore.Images.Media.DATA)
+            cursor = context.contentResolver.query(contentUri, proj, null, null, null)
+            val column_index = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor.moveToFirst()
+            return cursor.getString(column_index)
         } finally {
             if (cursor != null) {
-                cursor.close();
+                cursor.close()
             }
         }
     }
 
-    public void convertOrientation(Bitmap bitmap, Uri imageUri) {
+    fun convertOrientation(bitmap: Bitmap?, imageUri: Uri?) {
         // int orientation = ExifInterface.ORIENTATION_NORMAL;
         // try {
         // ExifInterface ei = new ExifInterface(photoPath);
@@ -941,12 +919,12 @@ public class MainActivity extends AppCompatActivity {
         // Log.e(TAG, "can not retrieve exif");
         // }
 
-        String[] orientationColumn = { MediaStore.Images.Media.ORIENTATION };
-        Cursor cur = getContentResolver().query(imageUri, orientationColumn, null, null, null);
-        int orientation = 0;
+        val orientationColumn = arrayOf(MediaStore.Images.Media.ORIENTATION)
+        val cur = contentResolver.query(imageUri!!, orientationColumn, null, null, null)
+        var orientation = 0
         if (cur != null && cur.moveToFirst()) {
-            orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
-            mOriginBitmap = CuteR.rotateImage(bitmap, orientation);
+            orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]))
+            mOriginBitmap = CuteR.rotateImage(bitmap, orientation.toFloat())
         }
         //
         // switch(orientation) {
@@ -965,159 +943,179 @@ public class MainActivity extends AppCompatActivity {
         // }
     }
 
-    public Bitmap getBitmapFromUri(Uri imageUri) {
-        getContentResolver().notifyChange(imageUri, null);
-        ContentResolver cr = getContentResolver();
-        Bitmap bitmap;
+    fun getBitmapFromUri(imageUri: Uri?): Bitmap? {
+        contentResolver.notifyChange(imageUri!!, null)
+        val cr = contentResolver
+        var bitmap: Bitmap
         try {
-            bitmap = android.provider.MediaStore.Images.Media.getBitmap(cr, imageUri);
-            float scale = Math.min((float) 1.0 * MAX_INPUT_BITMAP_WIDTH / bitmap.getWidth(),
-                    (float) 1.0 * MAX_INPUT_BITMAP_HEIGHT / bitmap.getHeight());
+            bitmap = MediaStore.Images.Media.getBitmap(cr, imageUri)
+            val scale = kotlin.math.min(
+                1.0f * MAX_INPUT_BITMAP_WIDTH / bitmap.width,
+                1.0f * MAX_INPUT_BITMAP_HEIGHT / bitmap.height
+            )
             if (scale < 1) {
-                bitmap = CuteR.getResizedBitmap(bitmap, scale, scale);
+                bitmap = CuteR.getResizedBitmap(bitmap, scale, scale)
             }
-            return bitmap;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            return bitmap
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
         }
+
     }
 
-    private void saveQrText(String txt) {
-        if (qrText == txt) {
-            return;
+    private fun saveQrText(txt: String) {
+        if (qrText === txt) {
+            return
         }
 
-        Bitmap checkTextBitmap = CuteR.ProductNormal(txt, false, Color.BLACK);
+        val checkTextBitmap = CuteR.ProductNormal(txt, false, Color.BLACK)
         if (checkTextBitmap == null) {
-            Toast.makeText(this, str(R.string.text_too_long), Toast.LENGTH_LONG).show();
-            return;
+            Toast.makeText(this, str(R.string.text_too_long), Toast.LENGTH_LONG).show()
+            return
         }
 
-        qrText = txt;
+        qrText = txt
         if (mCurrentMode == NORMAL_MODE) {
-            mQRBitmap = checkTextBitmap;
-            pickPhoto.setImageBitmap(mQRBitmap);
+            mQRBitmap = checkTextBitmap
+            pickPhoto.setImageBitmap(mQRBitmap)
         }
 
-        final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(PREF_TEXT_FOR_QR, qrText);
-        editor.commit();
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+        editor.putString(PREF_TEXT_FOR_QR, qrText)
+        editor.commit()
     }
 
-    private String str(int id) {
-        return getResources().getString(id);
+    private fun str(id: Int): String {
+        return resources.getString(id)
     }
 
-    private void openAbout() {
-        WebView web = new WebView(this);
-        web.loadUrl(str(R.string.about_page));
-        web.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                return true;
+    private fun openAbout() {
+        val web = WebView(this)
+        web.loadUrl(str(R.string.about_page))
+        web.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                return true
             }
-        });
-        new AlertDialog.Builder(this)
-                .setTitle(String.format(str(R.string.about_info_title), getMyVersion(this)))
-                .setPositiveButton(R.string.about_info_share, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-                        intent.setType("text/plain");
-                        intent.putExtra(Intent.EXTRA_SUBJECT, str(R.string.share_subject));
-                        intent.putExtra(Intent.EXTRA_TEXT, str(R.string.share_content));
-                        startActivity(Intent.createChooser(intent, str(R.string.share_channel)));
-                    }
-                })
-                .setNegativeButton(R.string.about_info_close, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.cancel();
-                    }
-                })
-                .setView(web)
-                .create()
-                .show();
-    }
-
-    public static String getMyVersion(Context context) {
-        try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            if (null == packageInfo.versionName) {
-                return "Unknown";
-            } else {
-                return packageInfo.versionName;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "failed to get package info" + e);
-            return "Unknown";
         }
+        AlertDialog.Builder(this)
+            .setTitle(String.format(str(R.string.about_info_title), getMyVersion(this)))
+            .setPositiveButton(R.string.about_info_share) { dialogInterface, i ->
+                val intent = Intent(Intent.ACTION_SEND)
+                intent.type = "text/plain"
+                intent.putExtra(Intent.EXTRA_SUBJECT, str(R.string.share_subject))
+                intent.putExtra(Intent.EXTRA_TEXT, str(R.string.share_content))
+                startActivity(Intent.createChooser(intent, str(R.string.share_channel)))
+            }
+            .setNegativeButton(R.string.about_info_close) { dialogInterface, i ->
+                dialogInterface.cancel()
+            }
+            .setView(web)
+            .create()
+            .show()
     }
 
-    public boolean isStoragePermissionGranted(int request) {
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED ||
-                    (Build.VERSION.SDK_INT >= 34 && ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) == PackageManager.PERMISSION_GRANTED)) {
-                Log.v(TAG, "Permission is granted");
-                return true;
-            } else {
-                Log.v(TAG, "Permission is revoked");
-                if (Build.VERSION.SDK_INT >= 34) {
-                    ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_MEDIA_IMAGES,
-                            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED }, request);
+    companion object {
+        val PREF_GUIDE_VERSION = "version"
+
+        fun getMyVersion(context: Context): String {
+            try {
+                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                return if (null == packageInfo.versionName) {
+                    "Unknown"
                 } else {
-                    ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_MEDIA_IMAGES },
-                            request);
+                    packageInfo.versionName
                 }
-                return false;
+            } catch (e: Exception) {
+                Log.e("MainActivity", "failed to get package info" + e)
+                return "Unknown"
+            }
+
+        }
+    }
+
+    fun isStoragePermissionGranted(request: Int): Boolean {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_MEDIA_IMAGES
+                ) == PackageManager.PERMISSION_GRANTED ||
+                (Build.VERSION.SDK_INT >= 34 && ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                ) == PackageManager.PERMISSION_GRANTED)
+            ) {
+                Log.v(TAG, "Permission is granted")
+                return true
+            } else {
+                Log.v(TAG, "Permission is revoked")
+                if (Build.VERSION.SDK_INT >= 34) {
+                    ActivityCompat.requestPermissions(
+                        this, arrayOf(
+                            Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                        ), request
+                    )
+                } else {
+                    ActivityCompat.requestPermissions(
+                        this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+                        request
+                    )
+                }
+                return false
             }
         } else if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG, "Permission is granted");
-                return true;
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.v(TAG, "Permission is granted")
+                return true
             } else {
-                Log.v(TAG, "Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
-                        request);
-                return false;
+                Log.v(TAG, "Permission is revoked")
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    request
+                )
+                return false
             }
         } else { // permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG, "Permission is granted");
-            return true;
+            Log.v(TAG, "Permission is granted")
+            return true
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
+            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0])
             if (requestCode == REQUEST_SAVE_FILE) {
-                saveQRImage();
+                saveQRImage()
             } else {
-                launchGallery(requestCode);
+                launchGallery(requestCode)
             }
         }
     }
 
-    private void showListDialog() {
-        final AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
-        builderSingle.setTitle(R.string.select_mode_title);
+    private fun showListDialog() {
+        val builderSingle = AlertDialog.Builder(this@MainActivity)
+        builderSingle.setTitle(R.string.select_mode_title)
 
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                MainActivity.this,
-                android.R.layout.select_dialog_singlechoice);
-        final String[] modes = new String[] { str(R.string.normal_mode), str(R.string.picture_mode),
-                str(R.string.logo_mode),
-                str(R.string.embed_mode) };
-        for (String mode : modes) {
-            arrayAdapter.add(mode);
+        val arrayAdapter = ArrayAdapter<String>(
+            this@MainActivity,
+            android.R.layout.select_dialog_singlechoice
+        )
+        val modes = arrayOf(
+            str(R.string.normal_mode), str(R.string.picture_mode),
+            str(R.string.logo_mode),
+            str(R.string.embed_mode)
+        )
+        for (mode in modes) {
+            arrayAdapter.add(mode)
         }
-        builderSingle.setSingleChoiceItems(modes, mCurrentMode, null);
+        builderSingle.setSingleChoiceItems(modes, mCurrentMode, null)
         // builderSingle.setNegativeButton(
         // "cancel",
         // new DialogInterface.OnClickListener() {
@@ -1128,59 +1126,56 @@ public class MainActivity extends AppCompatActivity {
         // });
 
         builderSingle.setAdapter(
-                arrayAdapter,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setCurrentMode(which);
-                        dialog.dismiss();
-                    }
-                });
-
-        builderSingle.show();
-    }
-
-    public int getCurrentMode() {
-        return mCurrentMode;
-    }
-
-    public void setCurrentMode(int mode) {
-        if (mCurrentMode == mode) {
-            return;
+            arrayAdapter
+        ) { dialog, which ->
+            setCurrentMode(which)
+            dialog.dismiss()
         }
-        mCurrentMode = mode;
 
-        final SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putInt(PREF_MODE_FOR_QR, mode);
-        editor.commit();
+        builderSingle.show()
+    }
 
-        switch (mCurrentMode) {
-            case NORMAL_MODE:
-                hideGalleryMenu();
-                hideQrMenu();
-                mQRBitmap = CuteR.ProductNormal(qrText, false, Color.BLACK);
-                pickPhoto.setImageBitmap(mQRBitmap);
-                pickPhoto.setShowSelectFrame(false);
-                showSaveMenu();
-                hideRevertMenu();
-                break;
-            default:
-                showGalleryMenu();
+    val currentMode: Int
+        get() = mCurrentMode
+
+    fun setCurrentMode(mode: Int) {
+        if (mCurrentMode == mode) {
+            return
+        }
+        mCurrentMode = mode
+
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+        editor.putInt(PREF_MODE_FOR_QR, mode)
+        editor.commit()
+
+        when (mCurrentMode) {
+            NORMAL_MODE -> {
+                hideGalleryMenu()
+                hideQrMenu()
+                mQRBitmap = CuteR.ProductNormal(qrText, false, Color.BLACK)
+                pickPhoto.setImageBitmap(mQRBitmap)
+                pickPhoto.setShowSelectFrame(false)
+                showSaveMenu()
+                hideRevertMenu()
+            }
+
+            else -> {
+                showGalleryMenu()
                 if (mPickImage) {
                     if (mGif && mCurrentMode != PICTURE_MODE) {
-                        mPickImage = false;
-                        mGif = false;
+                        mPickImage = false
+                        mGif = false
                         if (mGifDrawable != null) {
-                            mGifDrawable.recycle();
+                            mGifDrawable!!.recycle()
                         }
-                        mOriginBitmap = BitmapFactory.decodeResource(getResources(), modeGuide[mCurrentMode - 1]);
+                        mOriginBitmap = BitmapFactory.decodeResource(resources, modeGuide[mCurrentMode - 1])
                     }
                 } else {
-                    mOriginBitmap = BitmapFactory.decodeResource(getResources(), modeGuide[mCurrentMode - 1]);
+                    mOriginBitmap = BitmapFactory.decodeResource(resources, modeGuide[mCurrentMode - 1])
                 }
-                revertQR(mPickImage);
-                break;
+                revertQR(mPickImage)
+            }
         }
     }
 }

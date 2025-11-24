@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     namespace 'io.github.scola.qart'
@@ -25,6 +26,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
     applicationVariants.all { variant ->
 
         variant.outputs.all { output ->
@@ -48,4 +53,5 @@ dependencies {
     implementation 'com.aurelhubert:ahbottomnavigation:1.5.1'
     implementation project(':cropper')
     implementation project(':onboarder')
+    implementation 'androidx.core:core-ktx:1.12.0'
 }

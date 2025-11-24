@@ -1,58 +1,54 @@
-package io.github.scola.qart;
+package io.github.scola.qart
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.widget.Toast;
-import com.chyrta.onboarder.OnboarderActivity;
-import com.chyrta.onboarder.OnboarderPage;
-import java.util.ArrayList;
-import java.util.List;
-public class IntroActivity extends OnboarderActivity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        OnboarderPage onboarderPage1 = new OnboarderPage(getResources().getString(R.string.black_white), "", R.drawable.guide_img);
-        OnboarderPage onboarderPage2 = new OnboarderPage(getResources().getString(R.string.colorful), "", R.drawable.guide_img_colorful);
-        OnboarderPage onboarderPage3 = new OnboarderPage(getResources().getString(R.string.gif), "", R.drawable.guide_img_gif);
-        OnboarderPage onboarderPage4 = new OnboarderPage(getResources().getString(R.string.logo_title), "", R.drawable.guide_img_logo);
-        OnboarderPage onboarderPage5 = new OnboarderPage(getResources().getString(R.string.embed_title), "", R.drawable.guide_img_embed);
+import android.content.Context
+import android.os.Bundle
+import com.chyrta.onboarder.OnboarderActivity
+import com.chyrta.onboarder.OnboarderPage
+import java.util.ArrayList
 
-        List<OnboarderPage> pages = new ArrayList<>();
-        pages.add(onboarderPage1);
-        pages.add(onboarderPage2);
-        pages.add(onboarderPage3);
-        pages.add(onboarderPage4);
-        pages.add(onboarderPage5);
+class IntroActivity : OnboarderActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val onboarderPage1 = OnboarderPage(resources.getString(R.string.black_white), "", R.drawable.guide_img)
+        val onboarderPage2 = OnboarderPage(resources.getString(R.string.colorful), "", R.drawable.guide_img_colorful)
+        val onboarderPage3 = OnboarderPage(resources.getString(R.string.gif), "", R.drawable.guide_img_gif)
+        val onboarderPage4 = OnboarderPage(resources.getString(R.string.logo_title), "", R.drawable.guide_img_logo)
+        val onboarderPage5 = OnboarderPage(resources.getString(R.string.embed_title), "", R.drawable.guide_img_embed)
 
-        for (OnboarderPage page : pages) {
-            page.setBackgroundColor(R.color.guide_bg);
-            page.setTitleTextSize(18);
+        val pages: MutableList<OnboarderPage> = ArrayList()
+        pages.add(onboarderPage1)
+        pages.add(onboarderPage2)
+        pages.add(onboarderPage3)
+        pages.add(onboarderPage4)
+        pages.add(onboarderPage5)
+
+        for (page in pages) {
+            page.setBackgroundColor(R.color.guide_bg)
+            page.setTitleTextSize(18f)
         }
-//        setSkipButtonTitle("Skip");
-        setSkipButtonHidden();
-        setFinishButtonTitle(getResources().getString(R.string.guide_start));
-        setOnboardPagesReady(pages);
-    }
-    @Override
-    public void onSkipButtonPressed() {
-        super.onSkipButtonPressed();
-//        Toast.makeText(this, "Skip button was pressed!", Toast.LENGTH_SHORT).show();
-//        finish();
-    }
-    @Override
-    public void onFinishButtonPressed() {
-//        Toast.makeText(this, "Finish button was pressed", Toast.LENGTH_SHORT).show();
-        final SharedPreferences sharedPref = getSharedPreferences(MainActivity.PREF_GUIDE_VERSION, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(MainActivity.PREF_GUIDE_VERSION, MainActivity.getMyVersion(this));
-        editor.commit();
-
-        finish();
+        //        setSkipButtonTitle("Skip");
+        setSkipButtonHidden()
+        setFinishButtonTitle(resources.getString(R.string.guide_start))
+        setOnboardPagesReady(pages)
     }
 
-    @Override
-    public void onBackPressed(){
-        return;
+    override fun onSkipButtonPressed() {
+        super.onSkipButtonPressed()
+        //        Toast.makeText(this, "Skip button was pressed!", Toast.LENGTH_SHORT).show();
+        //        finish();
+    }
+
+    override fun onFinishButtonPressed() {
+        //        Toast.makeText(this, "Finish button was pressed", Toast.LENGTH_SHORT).show();
+        val sharedPref = getSharedPreferences(MainActivity.PREF_GUIDE_VERSION, Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+        editor.putString(MainActivity.PREF_GUIDE_VERSION, MainActivity.getMyVersion(this))
+        editor.commit()
+
+        finish()
+    }
+
+    override fun onBackPressed() {
+        return
     }
 }
